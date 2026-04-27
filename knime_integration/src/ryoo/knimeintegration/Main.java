@@ -14,8 +14,6 @@ public class Main {
 		
 		System.out.println("Testing Ebi...");
 		
-		String[] inputs = {"hello"};
-		
 		ICallEbiService callEbiService = useMock ? new CallEbiMock() : new CallEbiWrapper();
 		
 		String result = callEbiService.get_version();
