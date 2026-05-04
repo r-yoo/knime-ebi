@@ -12,7 +12,7 @@ public class CallEbiWrapper implements ICallEbiService{
 	}
 
 	@Override
-	public String get_version() {
+	public String get_logo(){
 		return call_ebi("Ebi itself logo", "text", new String[0]);
 	}
 	

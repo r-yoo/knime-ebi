@@ -10,7 +10,7 @@ public class CallEbiMock implements ICallEbiService{
 	}
 
 	@Override
-	public String get_version() {
-		return "Mock v1";
+	public String get_logo() {
+		return "Mock logo";
 	}
 }
