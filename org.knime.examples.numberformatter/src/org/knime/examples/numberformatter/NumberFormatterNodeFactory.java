@@ -3,6 +3,7 @@ package org.knime.examples.numberformatter;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.node.DefaultNode;
 
 /**
  * This is an example implementation of the node factory of the

@@ -10,6 +10,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.core,
  org.knime.workbench.repository,
  org.knime.base,
+ org.knime.core.ui,
  org.pm4knime.java
 Bundle-ActivationPolicy: lazy
 Export-Package: org.knime.examples.numberformatter
