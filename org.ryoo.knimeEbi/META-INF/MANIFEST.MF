@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EbiAnaComp-Node extension for KNIME Workbench
+Bundle-SymbolicName: org.ryoo.knimeEbi.node.EbiAnaComp; singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-ClassPath: ebianacomp.jar
+Bundle-Activator: org.ryoo.knimeEbi.node.EbiAnaComp.EbiAnaCompNodePlugin
+Bundle-Vendor: 
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base,
+ org.knime.core.ui,
+ org.pm4knime.java,
+ org.pm4knime.python,
+ org.knime.core
+Bundle-ActivationPolicy: lazy
+Export-Package: org.ryoo.knimeEbi.node.EbiAnaComp
+
