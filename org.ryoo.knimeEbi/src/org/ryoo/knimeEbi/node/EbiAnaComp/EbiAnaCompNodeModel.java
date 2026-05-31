@@ -1,5 +1,14 @@
 package org.ryoo.knimeEbi.node.EbiAnaComp;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.out.XSerializer;
+import org.deckfour.xes.out.XesXmlSerializer;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
@@ -10,6 +19,8 @@ import org.knime.node.DefaultModel;
 
 import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
+
+import org.processmining.ebi.CallEbi;
 
 /**
  * <code>NodeModel</code> for the "EbiAnaComp" node.
@@ -24,11 +35,22 @@ public class EbiAnaCompNodeModel {
     public EbiAnaCompNodeModel(final Class<?> modelSettingsClass) {}
 
 
-    private static DataTableSpec createOutputSpec() {
+    private static DataTableSpec createOutputSpec() { // -> in util class
     	return new DataTableSpec(
     			"Ebi Completeness",
     			new String[] {"completeness"},
     			new DataType[] {StringCell.TYPE});
+    }
+    
+    private static String writeLogToTempXesFile(final XLog log) throws IOException { // -> in util class
+        final Path tempFile = Files.createTempFile("ebi-input-", ".xes");
+
+        try (OutputStream out = Files.newOutputStream(tempFile)) {
+            final XSerializer serializer = new XesXmlSerializer();
+            serializer.serialize(log, out);
+        }
+
+        return tempFile.toAbsolutePath().toString();
     }
     
     public static void configure(final DefaultModel.ConfigureInput i, final DefaultModel.ConfigureOutput o) 
@@ -43,13 +65,27 @@ public class EbiAnaCompNodeModel {
     
     public static void execute(final DefaultModel.ExecuteInput i, final DefaultModel.ExecuteOutput o) {
     	    try {
-    	        final XLogPortObject log = i.getInPortObject(0);
+    	        final XLogPortObject logPortObject = i.getInPortObject(0);
 
     	        final DataTableSpec spec = createOutputSpec();
     	        final BufferedDataContainer container =
     	            i.getExecutionContext().createDataContainer(spec);
-
-    	        String result = "3/4"; // replace with Ebi call result
+    	        
+    	        String result = null;
+    	        String xesPath = null;
+    	        
+    	        try {
+        	        xesPath = writeLogToTempXesFile(logPortObject.getLog());
+        	        
+        	        result = CallEbi.call_ebi("Ebi analyse completeness", "text", new String[] {xesPath}); // -> replace with CallEbiWrapper from ryoo.knimeintegration
+        	        
+        	        System.out.println("Path of the temp xes-file:");
+        	        System.out.println(xesPath);
+    	        } finally {
+    	        	if(xesPath != null) {
+    	        		Files.deleteIfExists(Path.of(xesPath));
+    	        	}
+    	        }
 
     	        container.addRowToTable(new DefaultRow(
     	            "Row0",
