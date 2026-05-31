@@ -1,11 +1,8 @@
 package org.ryoo.knimeEbi.node.EbiAnaComp;
 
-import org.knime.core.node.port.PortType;
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNodeFactory;
 import org.pm4knime.portobject.XLogPortObject;
-import org.processmining.framework.plugin.PluginContext;
-import org.xesstandard.model.XesLog;
 
 /**
  * This is an example implementation of the node factory of the
