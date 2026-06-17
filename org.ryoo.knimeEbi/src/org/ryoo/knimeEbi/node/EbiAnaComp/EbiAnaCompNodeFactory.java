@@ -20,7 +20,7 @@ public class EbiAnaCompNodeFactory extends DefaultNodeFactory {
 			   		.shortDescription("Estimate the completeness of an event log using species discovery.")
 			   		.fullDescription("This node estimates the completeness of an event log using species discovery.")
 			   		.sinceVersion(2, 0, 0)
-			   		.ports(p -> p
+			  		.ports(p -> p
                             .addInputPort("Event Log", "an event log", Pm4KnimeEventLogPort.portType())
 		                    .addOutputTable("Completeness", "estimated completeness as a fraction"))
 		            .model(m -> m
