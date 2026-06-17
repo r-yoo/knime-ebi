@@ -1,13 +1,10 @@
 package org.ryoo.knimeEbi.node.EbiAnaComp;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.out.XSerializer;
-import org.deckfour.xes.out.XesXmlSerializer;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -17,10 +14,8 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.node.DefaultModel;
 
-import org.pm4knime.portobject.XLogPortObject;
-import org.pm4knime.portobject.XLogPortObjectSpec;
-
 import org.processmining.ebi.CallEbi;
+import org.processmining.ebi.Pm4KnimeEventLogPort;
 
 /**
  * <code>NodeModel</code> for the "EbiAnaComp" node.
@@ -42,21 +37,38 @@ public class EbiAnaCompNodeModel {
     			new DataType[] {StringCell.TYPE});
     }
     
-    private static String writeLogToTempXesFile(final XLog log) throws IOException { // -> in util class
-        final Path tempFile = Files.createTempFile("ebi-input-", ".xes");
+    private static String writeLogToXesString(final Object logPortObject) throws IOException { // -> in util class
+    	final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        try (OutputStream out = Files.newOutputStream(tempFile)) {
-            final XSerializer serializer = new XesXmlSerializer();
-            serializer.serialize(log, out);
+    	serializeLog(logPortObject, out);
+
+        return out.toString(StandardCharsets.UTF_8);
+    }
+
+    private static void serializeLog(final Object logPortObject, final OutputStream out) throws IOException { // -> in util class
+        try {
+            final Object log = logPortObject.getClass().getMethod("getLog").invoke(logPortObject);
+            if (log == null) {
+                throw new IOException("Input event log is empty.");
+            }
+
+            final ClassLoader pm4knimeClassLoader = log.getClass().getClassLoader();
+            final Class<?> xLogClass = Class.forName("org.deckfour.xes.model.XLog", true, pm4knimeClassLoader);
+            final Class<?> serializerClass =
+                    Class.forName("org.deckfour.xes.out.XesXmlSerializer", true, pm4knimeClassLoader);
+            final Object serializer = serializerClass.getConstructor().newInstance();
+
+            serializerClass.getMethod("serialize", xLogClass, OutputStream.class).invoke(serializer, log, out);
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException
+                | InvocationTargetException ex) {
+            throw new IOException("Unable to serialize the PM4KNIME event log to XES.", ex);
         }
-
-        return tempFile.toAbsolutePath().toString();
     }
     
     public static void configure(final DefaultModel.ConfigureInput i, final DefaultModel.ConfigureOutput o) 
     	throws InvalidSettingsException {
     	
-    	if (!(i.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
+        if (!Pm4KnimeEventLogPort.isEventLogSpec(i.getInPortSpec(0))) {
             throw new InvalidSettingsException("Input is not a valid Event Log!");
         }
 
@@ -65,27 +77,18 @@ public class EbiAnaCompNodeModel {
     
     public static void execute(final DefaultModel.ExecuteInput i, final DefaultModel.ExecuteOutput o) {
     	    try {
-    	        final XLogPortObject logPortObject = i.getInPortObject(0);
+                final Object logPortObject = i.getInPortObject(0);
 
     	        final DataTableSpec spec = createOutputSpec();
     	        final BufferedDataContainer container =
     	            i.getExecutionContext().createDataContainer(spec);
     	        
-    	        String result = null;
-    	        String xesPath = null;
-    	        
-    	        try {
-        	        xesPath = writeLogToTempXesFile(logPortObject.getLog());
-        	        
-        	        result = CallEbi.call_ebi("Ebi analyse completeness", "text", new String[] {xesPath}); // -> replace with CallEbiWrapper from ryoo.knimeintegration
-        	        
-        	        System.out.println("Path of the temp xes-file:");
-        	        System.out.println(xesPath);
-    	        } finally {
-    	        	if(xesPath != null) {
-    	        		Files.deleteIfExists(Path.of(xesPath));
-    	        	}
-    	        }
+                final String xesContent = writeLogToXesString(logPortObject);
+
+                final String result = CallEbi.call_ebi(
+                		"Ebi analyse completeness",
+                		".frac",
+                		new String[] {xesContent}); // -> replace with CallEbiWrapper from ryoo.knimeintegration
 
     	        container.addRowToTable(new DefaultRow(
     	            "Row0",
