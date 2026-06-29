@@ -16,6 +16,7 @@ import org.knime.node.DefaultModel;
 
 import org.processmining.ebi.CallEbi;
 import org.processmining.ebi.Pm4KnimeEventLogPort;
+import org.deckfour.xes.model.XLog;
 
 /**
  * <code>NodeModel</code> for the "EbiAnaComp" node.

@@ -5,7 +5,6 @@ Automatic-Module-Name: org.ryoo.knimeEbi.node.EbiAnaComp
 Bundle-SymbolicName: org.ryoo.knimeEbi.node.EbiAnaComp; singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-ClassPath: ebianacomp.jar
-Bundle-Activator: org.ryoo.knimeEbi.node.EbiAnaComp.EbiAnaCompNodePlugin
 Bundle-Vendor: 
 Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.core,

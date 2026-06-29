@@ -21,7 +21,7 @@ public class CallEbi {
     
     static {
         try {
-        	System.loadLibrary("ebi"); // -Djava.library.path=D:\Dev\Workspaces\eclipse\knime-ebi\knime_integration\lib in Run Config
+        	System.loadLibrary("ebi"); // -Djava.library.path=${workspace_loc:/org.ryoo.knimeEbi}\lib in Run Config
         	System.out.println("Ebi library loaded");
         } catch (Exception e) {
         	e.printStackTrace();
