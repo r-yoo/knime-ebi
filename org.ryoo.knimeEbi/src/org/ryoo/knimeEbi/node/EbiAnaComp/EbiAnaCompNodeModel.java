@@ -1,13 +1,6 @@
 package org.ryoo.knimeEbi.node.EbiAnaComp;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
-
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
@@ -16,7 +9,9 @@ import org.knime.node.DefaultModel;
 
 import org.processmining.ebi.CallEbi;
 import org.processmining.ebi.Pm4KnimeEventLogPort;
-import org.deckfour.xes.model.XLog;
+// import org.deckfour.xes.model.XLog;
+
+import org.ryoo.knimeEbi.util.*;
 
 /**
  * <code>NodeModel</code> for the "EbiAnaComp" node.
@@ -29,42 +24,6 @@ public class EbiAnaCompNodeModel {
      * Constructor for the node model.
      */
     public EbiAnaCompNodeModel(final Class<?> modelSettingsClass) {}
-
-
-    private static DataTableSpec createOutputSpec() { // -> in util class
-    	return new DataTableSpec(
-    			"Ebi Completeness",
-    			new String[] {"completeness"},
-    			new DataType[] {StringCell.TYPE});
-    }
-    
-    private static String writeLogToXesString(final Object logPortObject) throws IOException { // -> in util class
-    	final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    	serializeLog(logPortObject, out);
-
-        return out.toString(StandardCharsets.UTF_8);
-    }
-
-    private static void serializeLog(final Object logPortObject, final OutputStream out) throws IOException { // -> in util class
-        try {
-            final Object log = logPortObject.getClass().getMethod("getLog").invoke(logPortObject);
-            if (log == null) {
-                throw new IOException("Input event log is empty.");
-            }
-
-            final ClassLoader pm4knimeClassLoader = log.getClass().getClassLoader();
-            final Class<?> xLogClass = Class.forName("org.deckfour.xes.model.XLog", true, pm4knimeClassLoader);
-            final Class<?> serializerClass =
-                    Class.forName("org.deckfour.xes.out.XesXmlSerializer", true, pm4knimeClassLoader);
-            final Object serializer = serializerClass.getConstructor().newInstance();
-
-            serializerClass.getMethod("serialize", xLogClass, OutputStream.class).invoke(serializer, log, out);
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException
-                | InvocationTargetException ex) {
-            throw new IOException("Unable to serialize the PM4KNIME event log to XES.", ex);
-        }
-    }
     
     public static void configure(final DefaultModel.ConfigureInput i, final DefaultModel.ConfigureOutput o) 
     	throws InvalidSettingsException {
@@ -73,18 +32,18 @@ public class EbiAnaCompNodeModel {
             throw new InvalidSettingsException("Input is not a valid Event Log!");
         }
 
-        o.setOutSpec(0, createOutputSpec());
+        o.setOutSpec(0, TableUtil.createOutputSpec("Ebi Completeness", "completeness", StringCell.TYPE));
     }
     
     public static void execute(final DefaultModel.ExecuteInput i, final DefaultModel.ExecuteOutput o) {
     	    try {
                 final Object logPortObject = i.getInPortObject(0);
 
-    	        final DataTableSpec spec = createOutputSpec();
+    	        final DataTableSpec spec = TableUtil.createOutputSpec("Ebi Completeness", "completeness", StringCell.TYPE);
     	        final BufferedDataContainer container =
     	            i.getExecutionContext().createDataContainer(spec);
     	        
-                final String xesContent = writeLogToXesString(logPortObject);
+                final String xesContent = XesUtil.writeLogToXesString(logPortObject);
 
                 final String result = CallEbi.call_ebi(
                 		"Ebi analyse completeness",
