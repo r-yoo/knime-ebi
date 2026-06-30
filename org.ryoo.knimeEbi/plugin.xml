@@ -20,6 +20,10 @@
             category-path="/"
             factory-class="org.ryoo.knimeEbi.node.EbiAnaComp.EbiAnaCompNodeFactory"
             id="org.ryoo.knimeEbi.node.EbiAnaComp.EbiAnaCompNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiAnaVar.EbiAnaVarNodeFactory"
+            id="org.ryoo.knimeEbi.node.EbiAnaVar.EbiAnaVarNodeFactory"/>
    </extension>
    
 </plugin>

@@ -6,7 +6,7 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.osgi.framework.Bundle;
 
-public final class Pm4KnimeEventLogPort {
+public final class Pm4KnimeEventLogPort { // <- I think I can delete this because this is reflection for the XLogPortObject, which is already exposed
 
     static final String PORT_OBJECT_CLASS_NAME = "org.pm4knime.portobject.XLogPortObject";
     static final String PORT_OBJECT_SPEC_CLASS_NAME = "org.pm4knime.portobject.XLogPortObjectSpec";
