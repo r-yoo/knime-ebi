@@ -11,7 +11,7 @@ public class EbiAnaVarNodeFactory extends DefaultNodeFactory{
 				   DefaultNode.create()
 				   		.name("Ebi analyse variety")
 				   		.icon("../default.png")
-				   		.shortDescription("Compute the variety of a stochastic language.")
+				   		.shortDescription("Compute the variety of a stochastic language.") // <- Descriptions take directly from Ebi
 				   		.fullDescription("Compute the variety of a stochastic language. That is, the average distance between two arbitrary traces in the language.")
 				   		.sinceVersion(2, 0, 0)
 				  		.ports(p -> p

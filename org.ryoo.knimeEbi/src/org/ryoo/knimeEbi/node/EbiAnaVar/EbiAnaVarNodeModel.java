@@ -16,37 +16,37 @@ public class EbiAnaVarNodeModel {
 	
 	public EbiAnaVarNodeModel(final Class<?> modelSettingsClass) {}
 	
-	public static void configure(final DefaultModel.ConfigureInput i, final DefaultModel.ConfigureOutput o) 
+	public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
 	    	throws InvalidSettingsException {
 	    	
-	        if (!(i.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
+	        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
 	            throw new InvalidSettingsException("Input is not a valid Event Log!");
 	        }
 
-	        o.setOutSpec(0, TableUtil.createOutputSpec("Ebi Variety", "variety", StringCell.TYPE));
+	        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi Variety", "variety", StringCell.TYPE));
 	    }
 	    
-    public static void execute(final DefaultModel.ExecuteInput i, final DefaultModel.ExecuteOutput o) {
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput outpu) {
     	    try {
-                final Object logPortObject = i.getInPortObject(0);
+                final Object logPortObject = input.getInPortObject(0);
 
     	        final DataTableSpec spec = TableUtil.createOutputSpec("Ebi Variety", "variety", StringCell.TYPE);
     	        final BufferedDataContainer container =
-    	            i.getExecutionContext().createDataContainer(spec);
+    	            input.getExecutionContext().createDataContainer(spec);
     	        
-                final String xesContent = XesUtil.writeLogToXesString(logPortObject);
+                final String xesContent = XESUtil.writeLogToXesString(logPortObject);
 
                 final String result = CallEbi.call_ebi(
                 		"Ebi analyse variety",
                 		".frac",
-                		new String[] {xesContent}); // -> replace with CallEbiWrapper from ryoo.knimeintegration
+                		new String[] {xesContent});
 
     	        container.addRowToTable(new DefaultRow(
     	            "Row0",
     	            new StringCell(result)));
 
     	        container.close();
-    	        o.setOutData(0, container.getTable());
+    	        outpu.setOutData(0, container.getTable());
     	    } catch (Exception ex) {
     	        throw new RuntimeException(ex);
     	    }

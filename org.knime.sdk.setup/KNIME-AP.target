@@ -36,7 +36,7 @@
 </location>
 	<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="https://update.knime.com/community-contributions/trusted/nightly/"/>
-		<unit id="org.pm4knime.feature.feature.group" version="3.0.0.202606151248"/>
+		<unit id="org.pm4knime.feature.feature.group" version="3.0.0.202606161556"/>
 	</location>
 </locations>
 <targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21"/>

@@ -6,9 +6,8 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.node.DefaultModel;
-
+import org.pm4knime.portobject.XLogPortObjectSpec;
 import org.processmining.ebi.CallEbi;
-import org.processmining.ebi.Pm4KnimeEventLogPort;
 // import org.deckfour.xes.model.XLog;
 
 import org.ryoo.knimeEbi.util.*;
@@ -25,37 +24,37 @@ public class EbiAnaCompNodeModel {
      */
     public EbiAnaCompNodeModel(final Class<?> modelSettingsClass) {}
     
-    public static void configure(final DefaultModel.ConfigureInput i, final DefaultModel.ConfigureOutput o) 
+    public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
     	
-        if (!Pm4KnimeEventLogPort.isEventLogSpec(i.getInPortSpec(0))) {
+        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
             throw new InvalidSettingsException("Input is not a valid Event Log!");
         }
 
-        o.setOutSpec(0, TableUtil.createOutputSpec("Ebi Completeness", "completeness", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi Completeness", "completeness", StringCell.TYPE));
     }
     
-    public static void execute(final DefaultModel.ExecuteInput i, final DefaultModel.ExecuteOutput o) {
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
     	    try {
-                final Object logPortObject = i.getInPortObject(0);
+                final Object logPortObject = input.getInPortObject(0);
 
     	        final DataTableSpec spec = TableUtil.createOutputSpec("Ebi Completeness", "completeness", StringCell.TYPE);
     	        final BufferedDataContainer container =
-    	            i.getExecutionContext().createDataContainer(spec);
+    	            input.getExecutionContext().createDataContainer(spec);
     	        
-                final String xesContent = XesUtil.writeLogToXesString(logPortObject);
+                final String xesContent = XESUtil.writeLogToXesString(logPortObject);
 
                 final String result = CallEbi.call_ebi(
                 		"Ebi analyse completeness",
                 		".frac",
-                		new String[] {xesContent}); // -> replace with CallEbiWrapper from ryoo.knimeintegration
+                		new String[] {xesContent});
 
     	        container.addRowToTable(new DefaultRow(
     	            "Row0",
     	            new StringCell(result)));
 
     	        container.close();
-    	        o.setOutData(0, container.getTable());
+    	        output.setOutData(0, container.getTable());
     	    } catch (Exception ex) {
     	        throw new RuntimeException(ex);
     	    }

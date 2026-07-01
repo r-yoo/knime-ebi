@@ -2,7 +2,7 @@ package org.ryoo.knimeEbi.node.EbiAnaComp;
 
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNodeFactory;
-import org.processmining.ebi.Pm4KnimeEventLogPort;
+import org.pm4knime.portobject.XLogPortObject;
 
 /**
  * This is an example implementation of the node factory of the
@@ -17,11 +17,11 @@ public class EbiAnaCompNodeFactory extends DefaultNodeFactory {
 			   DefaultNode.create()
 			   		.name("Ebi analyse completeness")
 			   		.icon("default.png")
-			   		.shortDescription("Estimate the completeness of an event log using species discovery.")
+			   		.shortDescription("Estimate the completeness of an event log using species discovery.") // <- Descriptions take directly from Ebi
 			   		.fullDescription("This node estimates the completeness of an event log using species discovery.")
 			   		.sinceVersion(2, 0, 0)
 			  		.ports(p -> p
-                            .addInputPort("Event Log", "an event log", Pm4KnimeEventLogPort.portType())
+                            .addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
 		                    .addOutputTable("Completeness", "estimated completeness as a fraction"))
 		            .model(m -> m
 		                    .withoutParameters()

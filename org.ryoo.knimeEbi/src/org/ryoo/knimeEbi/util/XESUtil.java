@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 
-public class XesUtil {
+public class XESUtil {
 	
 	public static String writeLogToXesString(final Object logPortObject) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
