@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: EbiAnaComp-Node extension for KNIME Workbench
+Bundle-Name: Ebi extension for KNIME Workbench
 Automatic-Module-Name: org.ryoo.knimeEbi.node.EbiAnaComp
 Bundle-SymbolicName: org.ryoo.knimeEbi.node.EbiAnaComp; singleton:=true
 Bundle-Version: 1.0.0.qualifier
