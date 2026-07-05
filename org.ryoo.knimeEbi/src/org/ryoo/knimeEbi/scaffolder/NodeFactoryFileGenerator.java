@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+//import org.processmining.ebi.CallEbi;
+
 public class NodeFactoryFileGenerator {
 	
 	public static void createTest() throws IOException {
@@ -41,11 +43,14 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	public static void main(String[] args) {
+		
 		try {
 			createTest();
 		} catch (IOException e) {
 			System.out.println("Error calling function createTest().");
 			e.printStackTrace();
 		}
+		
+		//CallEbi.call_ebi("Ebi itself documentation commands", "text", new String[0]); <- ideal if this works, instead parse manual.pdf for now
 	}
 }
