@@ -1,5 +1,6 @@
 package org.ryoo.knimeEbi.scaffolder;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -42,12 +43,43 @@ public class NodeFactoryFileGenerator {
 		}
 	}
 	
+	public static void readTest() throws IOException {
+		Path inputPath = Path.of( 
+			"src",
+			"org",
+			"ryoo",
+			"knimeEbi",
+			"node",
+			"test", // read function name from a specific scaffolder folder
+			"TestFactory.java" // read function name from a specific scaffolder folder
+		);
+	 
+			
+		try(BufferedReader reader = Files.newBufferedReader(inputPath, StandardCharsets.UTF_8)){
+			String line;
+			while((line = reader.readLine()) != null) {
+				System.out.println(line);
+			}
+		} catch(IOException e) {
+			System.out.println("Error reading NodeFactory.");
+			e.printStackTrace();
+		}
+		
+	}
+	
 	public static void main(String[] args) {
 		
 		try {
 			createTest();
 		} catch (IOException e) {
 			System.out.println("Error calling function createTest().");
+			e.printStackTrace();
+		}
+		
+		try {
+			readTest();
+		} catch (IOException e) {
+			System.out.println("Error calling function readTest().");
 			e.printStackTrace();
 		}
 		
