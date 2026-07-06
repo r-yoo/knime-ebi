@@ -26,7 +26,7 @@ public class EbiAnaVarNodeModel {
 	        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi Variety", "variety", StringCell.TYPE));
 	    }
 	    
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput outpu) {
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
     	    try {
                 final Object logPortObject = input.getInPortObject(0);
 
@@ -46,7 +46,7 @@ public class EbiAnaVarNodeModel {
     	            new StringCell(result)));
 
     	        container.close();
-    	        outpu.setOutData(0, container.getTable());
+    	        output.setOutData(0, container.getTable());
     	    } catch (Exception ex) {
     	        throw new RuntimeException(ex);
     	    }

@@ -11,60 +11,24 @@ import org.processmining.ebi.CallEbi;
 
 public class NodeFactoryFileGenerator {
 	
-	public static void createTest() throws IOException {
+	public static void createEbiManual() {
+		String manual = CallEbi.call_ebi("Ebi itself manual", "text", new String[0]);
+		
 		Path outputPath = Path.of(
 			"src",
 			"org",
 			"ryoo",
 			"knimeEbi",
-			"node",
-			"test", // read function name directly from Ebi
-			"TestFactory.java" // read function name directly from Ebi
+			"scaffolder",
+			"ebi-manual.txt" // \ebicommands to \ebifilehandlers
 		);
 		
-		Files.createDirectories(outputPath.getParent());
-		
-		try(BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)){
-			writer.write("package org.ryoo.knimeEbi.node.test;");
-			writer.newLine();
-			writer.newLine();
-			writer.write("public class TestFactory {");
-			writer.newLine();
-				writer.write("	public static void main(String[] args) {");
-				writer.newLine();
-					writer.write("		System.out.println(\"Hello World!\");");
-					writer.newLine();
-				writer.write("	}");
-			writer.newLine();
-			writer.write("}");
+		try {
+			Files.writeString(outputPath, manual, StandardCharsets.UTF_8);
 		} catch (IOException e) {
-			System.out.println("Error creating NodeFactory.");
+			System.out.println("Error writing manual to txt-file.");
 			e.printStackTrace();
 		}
-	}
-	
-	public static void readTest() throws IOException {
-		Path inputPath = Path.of( 
-			"src",
-			"org",
-			"ryoo",
-			"knimeEbi",
-			"node",
-			"test", // read function name from a specific scaffolder folder
-			"TestFactory.java" // read function name from a specific scaffolder folder
-		);
-	 
-			
-		try(BufferedReader reader = Files.newBufferedReader(inputPath, StandardCharsets.UTF_8)){
-			String line;
-			while((line = reader.readLine()) != null) {
-				System.out.println(line);
-			}
-		} catch(IOException e) {
-			System.out.println("Error reading NodeFactory.");
-			e.printStackTrace();
-		}
-		
 	}
 	
 	private static String extractStringFromLine(String line, String prefix, String suffix) {
@@ -82,7 +46,31 @@ public class NodeFactoryFileGenerator {
 		}
 	}
 	
-	public static void extractEbiCommands() throws IOException {
+	private static String extractOutputType(final String line) {
+	    String prefix = "\\noindent Output:";
+
+	    if (!line.startsWith(prefix)) {
+	    	System.out.println("Provided line does not start with \\noindent Output:");
+	        return null;
+	    }
+
+	    int start = prefix.length();
+	    int end = line.indexOf(",", start);
+
+	    if (end < 0) {
+	    	System.out.println("There exists no comma in this line!");
+	        return null;
+	    }
+
+	    return line.substring(start, end).trim();
+	}
+	
+	/*
+	 * Extracts only Ebi commands that are available in Java.
+	 * Creates list of command names in ebi-commands.txt and ebi-commands.json, which stores all metadata of each command.
+	 * Immediately scaffold from ebi-manual.txt
+	 */
+	public static void extractEbiCommands() throws IOException { // generateEbiNodes, so immediately scaffold
 		Path inputPath = Path.of( 
 			"src",
 			"org",
@@ -105,34 +93,55 @@ public class NodeFactoryFileGenerator {
 			BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)){
 			String line;
 			
-			// Search for \numberofcommands
 			String prefix = "\\def\\numberofcommands{";
 			String suffix = "}";
 			
+			// Search for \numberofcommands
 			while(!(line = reader.readLine()).contains("\\numberofcommands") && (line != null)) {}
 			
-			int numberOfCommands = 0;
+			int numberOfCommandsLeft = 0;
 			if(line != null) {
 				String numberOfCommandsString = extractStringFromLine(line, prefix, suffix);
 				if(numberOfCommandsString != null) {
-					numberOfCommands = Integer.parseInt(numberOfCommandsString);
+					numberOfCommandsLeft = Integer.parseInt(numberOfCommandsString);
 				}
 			}
 			
 			// Search for \ebicommands
 			while(!(line = reader.readLine()).contains("\\ebicommands") && (line != null)) {}
-			System.out.println("ebicommands found");
+			System.out.println("\\ebicommands found");
+			
+			String commandName = null;
+			String alias = null;
+			String description = null;
+			String output = null;
+			String input = null;
+			boolean availableInJava = false;
 			
 			// Read each line until \ebifilehandlers
-			String commandName = null;
-			prefix = "\\label{command:";
-			suffix = "}";
-			
-			while(!(line = reader.readLine()).contains("\\ebifilehandlers") && (line != null) && (numberOfCommands > 0)) {
+			while(!(line = reader.readLine()).contains("\\ebifilehandlers") && (line != null) && (numberOfCommandsLeft > 0)) {
 				
 				if(line.contains("\\label{command:")) {
-					numberOfCommands--;
+					numberOfCommandsLeft--;
+					
+					prefix = "\\label{command:";
+					suffix = "}";
 					commandName = extractStringFromLine(line, prefix, suffix);
+				}
+				
+				if(line.contains("Alias")) {
+					prefix = "Alias: \texttt{";
+					suffix = "}.\\\\";
+					alias = extractStringFromLine(line, prefix, suffix);
+					
+					while(!(line = reader.readLine()).contains("\\\\") && (line != null) && !(line.contains("Output"))) {
+						description += line;
+					}
+					description += line;
+				}
+				
+				if(line.contains("\\noindent Output:")) {
+					output = extractOutputType(line);
 				}
 				
 				if(line.contains("This command is available in Java and ProM") && commandName != null) {
@@ -142,9 +151,9 @@ public class NodeFactoryFileGenerator {
 				
 			}
 			
-			if(numberOfCommands == 0) {
+			if(numberOfCommandsLeft == 0) {
 				System.out.println("All ebi commands found.");
-			} else if(numberOfCommands > 0) {
+			} else if(numberOfCommandsLeft > 0) {
 				System.out.println("Not all ebi commands found.");
 			} else {
 				System.out.println("Error in counting number of commands.");
@@ -158,25 +167,6 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	public static void main(String[] args) {
-		
-		// Just parse from ebi-manual.txt -> search for 1.2 Java/ProM plug-in -> check all commands available in Java
-//		String manual = CallEbi.call_ebi("Ebi itself manual", "text", new String[0]);
-//		
-//		Path outputPath = Path.of(
-//			"src",
-//			"org",
-//			"ryoo",
-//			"knimeEbi",
-//			"scaffolder",
-//			"ebi-manual.txt" // \ebicommands to \ebifilehandlers
-//		);
-//		
-//		try {
-//			Files.writeString(outputPath, manual, StandardCharsets.UTF_8);
-//		} catch (IOException e) {
-//			System.out.println("Error writing manual to txt-file.");
-//			e.printStackTrace();
-//		} // <- separate to function Ebi print manual into txt
 		
 		try {
 		    extractEbiCommands();
