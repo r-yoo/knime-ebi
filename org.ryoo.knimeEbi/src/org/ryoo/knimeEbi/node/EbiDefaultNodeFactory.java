@@ -10,17 +10,17 @@ import org.pm4knime.portobject.XLogPortObject;
 
 //BufferedDataTable.TYPE is the standard table port type.
 public class EbiDefaultNodeFactory extends DefaultNodeFactory{
-	public EbiDefaultNodeFactory(PortType portType, String name, String description) {
+	public EbiDefaultNodeFactory(PortType portType, String commandName, String description, String output) {
 		super(
 			   DefaultNode.create()
-			   		.name(name)
+			   		.name(commandName)
 			   		.icon("default.png")
 			   		.shortDescription(description)
 			   		.fullDescription(description)
-			   		.sinceVersion(2, 0, 0) // change to real version
+			   		.sinceVersion(0, 0, 0) // change to real version
 			  		.ports(p -> p
                          .addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
-		                 .addOutputPort("", "", portType))
+		                 .addOutputPort(output, output, portType))
 		            .model(m -> m
 		                    .withoutParameters()
 		                    .configure(EbiDefaultNodeFactory::configure)

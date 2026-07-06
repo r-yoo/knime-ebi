@@ -46,6 +46,14 @@ public class NodeFactoryFileGenerator {
 		}
 	}
 	
+	/*
+	 * Extract Content within {}
+	 */
+	private static String getContent(final String line) {
+		String[] open = line.split("\\{");
+		return open[1].split("\\}")[0];
+	}
+	
 	private static String extractOutputType(final String line) {
 	    String prefix = "\\noindent Output:";
 
@@ -65,12 +73,16 @@ public class NodeFactoryFileGenerator {
 	    return line.substring(start, end).trim();
 	}
 	
+	private static void createEbiNodeFactory(String commandName, String alias, String description, String output) {
+		// TODO: scaffold class that extends EbiDefaultNodeFactory
+	}
+	
 	/*
 	 * Extracts only Ebi commands that are available in Java.
 	 * Creates list of command names in ebi-commands.txt and ebi-commands.json, which stores all metadata of each command.
 	 * Immediately scaffold from ebi-manual.txt
 	 */
-	public static void extractEbiCommands() throws IOException { // generateEbiNodes, so immediately scaffold
+	public static void createEbiNodes() throws IOException { // generateEbiNodes, so immediately scaffold
 		Path inputPath = Path.of( 
 			"src",
 			"org",
@@ -111,12 +123,10 @@ public class NodeFactoryFileGenerator {
 			while(!(line = reader.readLine()).contains("\\ebicommands") && (line != null)) {}
 			System.out.println("\\ebicommands found");
 			
-			String commandName = null;
-			String alias = null;
-			String description = null;
-			String output = null;
-			String input = null;
-			boolean availableInJava = false;
+			String commandName = "";
+			String alias = "";
+			String description = "";
+			String output = "";
 			
 			// Read each line until \ebifilehandlers
 			while(!(line = reader.readLine()).contains("\\ebifilehandlers") && (line != null) && (numberOfCommandsLeft > 0)) {
@@ -130,25 +140,35 @@ public class NodeFactoryFileGenerator {
 				}
 				
 				if(line.contains("Alias")) {
-					prefix = "Alias: \texttt{";
-					suffix = "}.\\\\";
-					alias = extractStringFromLine(line, prefix, suffix);
+					description = "";
+					alias = getContent(line);
 					
 					while(!(line = reader.readLine()).contains("\\\\") && (line != null) && !(line.contains("Output"))) {
-						description += line;
+						description += line.trim();
 					}
-					description += line;
+					// Delete the two \\
+					line = line.substring(0, line.length() - 2);
+					description += line.trim();
 				}
 				
 				if(line.contains("\\noindent Output:")) {
 					output = extractOutputType(line);
 				}
 				
-				if(line.contains("This command is available in Java and ProM") && commandName != null) {
+				if(line.contains("This command is not available in Java and ProM") && commandName != null) {
+					continue;
+				}
+				else if(line.contains("This command is available in Java and ProM") && commandName != null) {
 					writer.write(commandName);
 					writer.newLine();
+					writer.write(alias);
+					writer.newLine();
+					writer.write(description);
+					writer.newLine();
+					writer.write(output);
+					writer.newLine();
+					createEbiNodeFactory(commandName, alias, description, output);
 				}
-				
 			}
 			
 			if(numberOfCommandsLeft == 0) {
@@ -169,7 +189,7 @@ public class NodeFactoryFileGenerator {
 	public static void main(String[] args) {
 		
 		try {
-		    extractEbiCommands();
+		    createEbiNodes();
 		} catch (IOException e) {
 		    System.out.println("Error extracting Ebi commands.");
 		    e.printStackTrace();

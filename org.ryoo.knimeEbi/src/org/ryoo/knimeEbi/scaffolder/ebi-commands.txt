@@ -1,52 +1,208 @@
 Ebi analyse completeness
+Ebi ana comp
+Estimate the completeness of an event log using species discovery.
+fraction
 Ebi analyse variety
+Ebi ana var
+Compute the variety of a stochastic language. That is, the average distance between two arbitrary traces in the language.
+fraction
 Ebi analyse-non-stochastic activities
+Ebi anans act
+Shows the activities that are declared in the object.
+text
 Ebi analyse-non-stochastic any-traces
+Ebi anans at
+Compute whether the model has any traces.Reasons for a model not to have any traces could be if the initial state is part of a livelock, or if there is no initial state.'true' means that the model has traces, 'false' means that the model has no traces.The computation may not terminate if the model is unbounded.
+bool
 Ebi analyse-non-stochastic bounded
+Ebi anans bnd
+Compute whether the model has a bounded state space.For Petri nets, a coverability graph is computed~\cite{esparza2019petri}.For other types of models, `true' is returned.
+bool
 Ebi analyse-non-stochastic infinitely-many-traces
+Ebi anans inft
+Compute whether the model has infinitely many traces. The computation may not terminate if the model is unbounded.
+bool
 Ebi association all-trace-attributes
+Ebi asso atts
+Compute the association between the process and trace attributes.
+text
 Ebi association trace-attribute
+Ebi asso att
+Compute the association between the process and a trace attribute.
+root
 Ebi conformance chi-squared
+Ebi conf cssc
+Compute chi-square stochastic conformance.
+fraction
 Ebi conformance chi-squared-sample
+Ebi conf cssc-sample
+Compute chi-square stochastic conformance, if both inputs need to be sampled. If one input is a log or a finite stochastic language, then use `cssc`.
+fraction
 Ebi conformance earth-movers
+Ebi conf emsc
+Compute Earth mover's stochastic conformance, which is 1 - the Wasserstein distance.
+fraction
 Ebi conformance earth-movers-sample
+Ebi conf emsc-sample
+Compute Earth mover's stochastic conformance, which is 1 - the Wasserstein distance, where one or both of the inputs needs to be sampled. If both inputs are logs or finite stochastic languages, then use `emsc`.
+fraction
 Ebi conformance entropic-relevance
+Ebi conf er
+Compute entropic relevance (uniform).
+logarithm
 Ebi conformance hellinger
+Ebi conf hsc
+Compute Hellinger stochastic conformance, which is 1 - the Hellinger distance.
+fraction
 Ebi conformance hellinger-sample
+Ebi conf hsc-sample
+Compute Hellinger stochastic conformance, which is 1 - the Hellinger distance, if both inputs need to be sampled. If one input is a log or a finite stochastic language, then use `hsc`.
+fraction
 Ebi conformance jensen-shannon
+Ebi conf jssc
+Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance.
+rootlog
 Ebi conformance jensen-shannon-sample
+Ebi conf jssc-sample
+Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance, if both inputs need to be sampled. If one input is a log or a finite stochastic language, then use `jssc`.
+rootlog
 Ebi conformance markovian
+Ebi conf ma
+Compute the conformance between two stochastic languages using a stochastic Markovian abstraction, which represents languages based on the expected frequency of subtraces to handle partially matching traces.
+fraction
 Ebi conformance unit-earth-movers
+Ebi conf uemsc
+Compute unit-earth movers' stochastic conformance, which is 1 - the total variation distance.
+fraction
 Ebi conformance unit-earth-movers-sample
+Ebi conf uemsc-sample
+Compute unit-earth movers' stochastic conformance, which is 1 - the total variation distance, if both inputs need to be sampled. If one input is a log or a finite stochastic language, then use `uemsc`.
+fraction
 Ebi convert labelled-petri-net
+Ebi conv lpn
+Convert an object to a labelled Petri net.
+labelled Petri net
 Ebi convert log
+Ebi conv lpn
+Convert an object to a labelled Petri net.
+event log
 Ebi convert stochastic-deterministic-finite-automaton
+Ebi conv sdfa
+Convert an object to a stochastic deterministic finite automaton.
+stochastic deterministic finite automaton
 Ebi convert stochastic-labelled-petri-net
+Ebi conv slpn
+Convert an object to a stochastic labelled Petri net.
+stochastic labelled Petri net
 Ebi convert stochastic-nondeterministic-finite-automaton
+Ebi conv snfa
+Convert an object to a stochastic nondeterministic finite automaton.
+stochastic non-deterministic finite automaton
 Ebi discover alignments stochastic-labelled-Petri-nets
+Ebi disc ali slpn
+Give each transition a weight that matches the aligned occurrences of its label. The model must be livelock-free.
+stochastic labelled Petri net
 Ebi discover directly-follows-graph
+Ebi disc dfg
+Discover a directly follows graph.
+directly follows graph
 Ebi discover occurrence stochastic-labelled-Petri-net
+Ebi disc occ slpn
+Give each transition a weight that matches the occurrences of its label; silent transitions get a weight of 1.
+stochastic labelled Petri net
 Ebi discover occurrence stochastic-process-tree
+Ebi disc occ sptree
+Give each leaf a weight that matches the occurrences of its label; silent leaves get a weight of 1.
+stochastic process tree
 Ebi discover random stochastic-labelled-Petri-net
+Ebi disc rnd slpn
+Give each transition a random weight between 0 (exclusive) and 1 (inclusive).
+stochastic labelled Petri net
 Ebi discover random stochastic-process-tree
+Ebi disc rnd sptree
+Give each leaf a random weight between 0 (exclusive) and 1 (inclusive).
+stochastic process tree
 Ebi discover uniform stochastic-labelled-Petri-net
+Ebi disc uni slpn
+Give each transition a weight of 1.
+stochastic labelled Petri net
 Ebi discover uniform stochastic-process-tree
+Ebi disc uni sptree
+Give each leaf a weight of 1 in a process tree.
+stochastic process tree
 Ebi discover-non-stochastic flower deterministic-finite-automaton
+Ebi dins flw dfa
+Discover a DFA that supports any trace with the activities of the log.
+deterministic finite automaton
 Ebi discover-non-stochastic flower process-tree
+Ebi dins flw ptree
+Discover a process tree that supports any trace with the activities of the log.
+process tree
 Ebi discover-non-stochastic prefix-tree deterministic-finite-automaton
+Ebi dins pfxt dfa
+Discover a DFA that is a prefix tree of the log.
+deterministic finite automaton
 Ebi discover-non-stochastic prefix-tree process-tree
+Ebi dins pfxt ptree
+Discover a process tree that is a prefix tree of the log.
+process tree
 Ebi filter traces empty
+Ebi dins pfxt ptree
+Discover a process tree that is a prefix tree of the log.
+XES event log
 Ebi filter traces event activity
+Ebi fil tr event act
+Remove traces that have event(s) as specified.
+XES event log
 Ebi filter traces length
+Ebi fil tr len
+Remove traces that have a given length.
+XES event log
 Ebi information
+Ebi info
+Show information about a file.
+text
 Ebi itself documentation commands
+Ebi it docs comm
+Print the HTML documentation of Ebi's commands.
+text
 Ebi itself documentation file-handlers
+Ebi it docs fhs
+Print the HTML documentation of Ebi's file handlers.
+text
 Ebi itself documentation home
+Ebi it docs fhs
+Print the HTML documentation of Ebi's file handlers.
+text
 Ebi itself html
+Ebi it docs fhs
+Print the HTML documentation of Ebi's file handlers.
+text
 Ebi itself java
+Ebi it docs fhs
+Print the HTML documentation of Ebi's file handlers.
+text
 Ebi itself logo
+Ebi it log
+Print the logo of Ebi.
+text
 Ebi itself manual
+Ebi it man
+Print the automatically generated parts of the manual of Ebi in Latex format.
+text
 Ebi probability log
+Ebi prob exptra
+Compute the most likely explanation of a trace given the stochastic model.
+fraction
 Ebi sample folds
+Ebi prob trac
+Compute the probability of a trace in a stochastic model.
+event log
 Ebi test bootstrap-test
+Ebi tst btst
+Test the hypothesis that the logs are derived from identical processes.
+text
 Ebi test log-categorical-attribute
+Ebi tst lcat
+Test the hypothesis that the sub-logs defined by the categorical attribute are derived from identical processes.
+text
