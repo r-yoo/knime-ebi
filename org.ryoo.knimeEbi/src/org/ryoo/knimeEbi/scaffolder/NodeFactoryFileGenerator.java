@@ -167,6 +167,7 @@ public class NodeFactoryFileGenerator {
 					writer.newLine();
 					writer.write(output);
 					writer.newLine();
+					writer.newLine();
 					createEbiNodeFactory(commandName, alias, description, output);
 				}
 			}
