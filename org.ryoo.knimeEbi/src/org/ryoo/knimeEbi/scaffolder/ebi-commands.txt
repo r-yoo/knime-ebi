@@ -20,7 +20,7 @@ bool
 
 Ebi analyse-non-stochastic bounded
 Ebi anans bnd
-Compute whether the model has a bounded state space.For Petri nets, a coverability graph is computed~\cite{esparza2019petri}.For other types of models, `true' is returned.
+Compute whether the model has a bounded state space.For Petri nets, a coverability graph is computed.For other types of models, `true' is returned.
 bool
 
 Ebi analyse-non-stochastic infinitely-many-traces

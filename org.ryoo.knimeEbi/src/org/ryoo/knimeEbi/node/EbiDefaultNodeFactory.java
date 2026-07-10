@@ -10,7 +10,7 @@ import org.pm4knime.portobject.XLogPortObject;
 
 //BufferedDataTable.TYPE is the standard table port type.
 public class EbiDefaultNodeFactory extends DefaultNodeFactory{
-	public EbiDefaultNodeFactory(PortType portType, String commandName, String description, String output) {
+	public EbiDefaultNodeFactory(String commandName, String description, String output, PortType portType) {
 		super(
 			   DefaultNode.create()
 			   		.name(commandName)

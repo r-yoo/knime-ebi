@@ -73,6 +73,14 @@ public class NodeFactoryFileGenerator {
 	    return line.substring(start, end).trim();
 	}
 	
+	private static String cleanLatexDescription(final String description) {
+	    return description
+	        .replaceAll("~?\\\\cite\\{[^}]*\\}", "")
+	        .replaceAll("~", " ")
+	        .replaceAll("\\s+", " ")
+	        .trim();
+	}
+	
 	private static String toClassNamePrefix(final String alias) {
 	    String[] words = alias.trim().split("[^A-Za-z0-9]+");
 
@@ -92,7 +100,7 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	private static void createEbiNodeFactory(String commandName, String alias, String description, String output) {
-		// TODO: scaffold class that extends EbiDefaultNodeFactory
+		// TODO: scaffold class that extends EbiDefaultNodeFactory and add factories to plugin.xml
 		String classNamePrefix = toClassNamePrefix(alias);
 		String factoryClassName = classNamePrefix + "NodeFactory";
 		
@@ -105,7 +113,37 @@ public class NodeFactoryFileGenerator {
 	        factoryClassName + ".java"
 	    );
 		
-		System.out.println(outputPath);	
+		System.out.println(outputPath);
+
+		String portType = "";
+		if(EbiTableOutputType.isTableCompatible(output)) {
+			portType = "BufferedDataTable.TYPE";
+		}
+		else {
+			// TODO: change, so that the output actually matches to the portTypes of pm4knime. Check portType and add import of the portObject.
+			portType = "BufferedDataTable.TYPE";
+		}
+		
+		try(BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)){
+			writer.write("package org.ryoo.knimeEbi.node;");
+			writer.newLine();
+			writer.newLine();
+			writer.write("import org.knime.core.node.BufferedDataTable;");
+			writer.newLine();
+			writer.newLine();
+			writer.write("public class " + factoryClassName + " extends EbiDefaultNodeFactory {");
+			writer.newLine();
+				writer.write("	public " + factoryClassName + "() {");
+				writer.newLine();
+					writer.write("		super(\"" + commandName + "\", \"" + description + "\", \"" + output + "\", " + portType + ");");
+					writer.newLine();
+				writer.write("	}");
+				writer.newLine();
+			writer.write("}");
+		} catch (IOException e) {
+			System.out.println("Error creating EbiNodeFactory.");
+			e.printStackTrace();
+		}
 	}
 	
 	/*
@@ -180,6 +218,8 @@ public class NodeFactoryFileGenerator {
 					// Delete the two \\
 					line = line.substring(0, line.length() - 2);
 					description += line.trim();
+					
+					description = cleanLatexDescription(description);
 				}
 				
 				if(line.contains("\\noindent Output:")) {
