@@ -73,8 +73,39 @@ public class NodeFactoryFileGenerator {
 	    return line.substring(start, end).trim();
 	}
 	
+	private static String toClassNamePrefix(final String alias) {
+	    String[] words = alias.trim().split("[^A-Za-z0-9]+");
+
+	    StringBuilder result = new StringBuilder();
+
+	    for (String word : words) {
+	        if (word.isBlank()) {
+	            continue;
+	        }
+
+	        String lower = word.toLowerCase();
+	        result.append(Character.toUpperCase(lower.charAt(0)));
+	        result.append(lower.substring(1));
+	    }
+
+	    return result.toString();
+	}
+	
 	private static void createEbiNodeFactory(String commandName, String alias, String description, String output) {
 		// TODO: scaffold class that extends EbiDefaultNodeFactory
+		String classNamePrefix = toClassNamePrefix(alias);
+		String factoryClassName = classNamePrefix + "NodeFactory";
+		
+		Path outputPath = Path.of(
+	        "src",
+	        "org",
+	        "ryoo",
+	        "knimeEbi",
+	        "node",
+	        factoryClassName + ".java"
+	    );
+		
+		System.out.println(outputPath);	
 	}
 	
 	/*
@@ -192,7 +223,7 @@ public class NodeFactoryFileGenerator {
 		try {
 		    createEbiNodes();
 		} catch (IOException e) {
-		    System.out.println("Error extracting Ebi commands.");
+		    System.out.println("Error creating Ebi nodes.");
 		    e.printStackTrace();
 		}
 	}
