@@ -99,6 +99,28 @@ public class NodeFactoryFileGenerator {
 	    return result.toString();
 	}
 	
+	private static String getPm4KnimePortType(final String ebiOutput) {
+	    return switch (ebiOutput) {
+	        case "event log", "XES event log", "compressed event log" ->
+	            "XLogPortObject";
+
+	        case "business process model and notation" ->
+	            "BpmnPortObject";
+
+	        case "directly follows graph", "directly follows model" ->
+	            "DFMPortObject";
+
+	        case "labelled Petri net", "LoLA Petri net", "Petri net markup language" ->
+	            "PetriNetPortObject";
+
+	        case "process tree", "process tree markup language" ->
+	            "ProcessTreePortObject";
+
+	        default ->
+	            "BufferedDataTable.TYPE"; // or skip/TODO
+	    };
+	}
+	
 	private static void createEbiNodeFactory(String commandName, String alias, String description, String output) {
 		// TODO: scaffold class that extends EbiDefaultNodeFactory and add factories to plugin.xml
 		String classNamePrefix = toClassNamePrefix(alias);
@@ -135,7 +157,7 @@ public class NodeFactoryFileGenerator {
 			writer.newLine();
 				writer.write("	public " + factoryClassName + "() {");
 				writer.newLine();
-					writer.write("		super(\"" + commandName + "\", \"" + description + "\", \"" + output + "\", " + portType + ");");
+					writer.write("		super(\"" + commandName + "\", \"" + description + "\", \"" + output + "\", " + portType + ".TYPE);");
 					writer.newLine();
 				writer.write("	}");
 				writer.newLine();
@@ -259,6 +281,8 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	public static void main(String[] args) {
+		//Create CI/CD Pipeline
+		createEbiManual();
 		
 		try {
 		    createEbiNodes();
