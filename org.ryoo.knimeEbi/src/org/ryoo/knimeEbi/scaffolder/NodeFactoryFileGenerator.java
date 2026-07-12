@@ -100,29 +100,66 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	private static String getPm4KnimePortType(final String ebiOutput) {
+		// TODO: Include all supported files of Ebi, and we need to add specific output parameters in calling Ebi for the stochastic outputs
 	    return switch (ebiOutput) {
 	        case "event log", "XES event log", "compressed event log" ->
 	            "XLogPortObject";
 
-	        case "business process model and notation" ->
+	        case "business process model and notation", "stochastic deterministic finite automaton", "stochastic non-deterministic finite automaton" -> 
 	            "BpmnPortObject";
 
-	        case "directly follows graph", "directly follows model" ->
-	            "DFMPortObject";
-
-	        case "labelled Petri net", "LoLA Petri net", "Petri net markup language" ->
+	        case "directly follows graph" ->
+	            "DfgMsdPortObject";
+	           
+	        case "directly follows model" ->
+	        	"DFMPortObject";
+	            
+	        case "labelled Petri net", "LoLA Petri net", "Petri net markup language", "stochastic labelled Petri net" ->
 	            "PetriNetPortObject";
 
-	        case "process tree", "process tree markup language" ->
+	        case "process tree", "process tree markup language", "stochastic process tree" ->
 	            "ProcessTreePortObject";
 
 	        default ->
-	            "BufferedDataTable.TYPE"; // or skip/TODO
+	            "BufferedDataTable"; // or skip/TODO
 	    };
+	}
+	
+	private static String setPortTypeImport(final String portType) {
+		String portTypeImport = "";
+		
+		if(portType == "BufferedDataTable") {
+			portTypeImport = "import org.knime.core.data.DataTableSpec;\r\n"
+							+ "import org.knime.core.data.def.StringCell;\r\n"
+							+ "import org.knime.core.data.def.DefaultRow;\r\n"
+							+ "import org.knime.core.node.BufferedDataContainer;\r\n"
+							+ "import org.knime.core.node.BufferedDataTable;\r\n"
+							+ "import org.knime.core.node.InvalidSettingsException;\r\n"
+							+ "\r\n"
+							+ "import org.pm4knime.portobject.XLogPortObjectSpec;\r\n"
+							+ "\r\n"
+							+ "import org.processmining.ebi.CallEbi;\r\n"
+							+ "\r\n"
+							+ "import org.ryoo.knimeEbi.util.*;";
+		}
+		else {
+			portTypeImport = "import org.knime.core.node.InvalidSettingsException;\r\n"
+							+ "\r\n"
+							+ "import org.pm4knime.portobject.XLogPortObjectSpec;\r\n" // TODO: Add case for portType = XLog
+							+ "import org.pm4knime.portobject." + portType + ";\r\n"
+							+ "import org.pm4knime.portobject." + portType + "Spec;\r\n"
+							+ "\r\n"
+							+ "import org.processmining.ebi.CallEbi;\r\n"
+							+ "\r\n"
+							+ "import org.ryoo.knimeEbi.util.*;";
+		}
+		
+		return portTypeImport;
 	}
 	
 	private static void createEbiNodeFactory(String commandName, String alias, String description, String output) {
 		// TODO: scaffold class that extends EbiDefaultNodeFactory and add factories to plugin.xml
+		// For Ebi convert log possibly create dynamic input ports and fixed ouput port XLog
 		String classNamePrefix = toClassNamePrefix(alias);
 		String factoryClassName = classNamePrefix + "NodeFactory";
 		
@@ -139,18 +176,19 @@ public class NodeFactoryFileGenerator {
 
 		String portType = "";
 		if(EbiTableOutputType.isTableCompatible(output)) {
-			portType = "BufferedDataTable.TYPE";
+			portType = "BufferedDataTable";
 		}
 		else {
 			// TODO: change, so that the output actually matches to the portTypes of pm4knime. Check portType and add import of the portObject.
-			portType = "BufferedDataTable.TYPE";
+			portType = getPm4KnimePortType(output);
 		}
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)){
 			writer.write("package org.ryoo.knimeEbi.node;");
 			writer.newLine();
 			writer.newLine();
-			writer.write("import org.knime.core.node.BufferedDataTable;");
+			String portTypeImport = setPortTypeImport(portType);
+			writer.write(portTypeImport);
 			writer.newLine();
 			writer.newLine();
 			writer.write("public class " + factoryClassName + " extends EbiDefaultNodeFactory {");
@@ -281,7 +319,7 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	public static void main(String[] args) {
-		//Create CI/CD Pipeline
+		// TODO: Create CI/CD Pipeline
 		createEbiManual();
 		
 		try {

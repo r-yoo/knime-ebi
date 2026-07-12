@@ -1,9 +1,17 @@
 package org.ryoo.knimeEbi.node;
 
-import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.InvalidSettingsException;
+
+import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.portobject.XLogPortObject;
+import org.pm4knime.portobject.XLogPortObjectSpec;
+
+import org.processmining.ebi.CallEbi;
+
+import org.ryoo.knimeEbi.util.*;
 
 public class EbiProbTracNodeFactory extends EbiDefaultNodeFactory {
 	public EbiProbTracNodeFactory() {
-		super("Ebi sample folds", "Compute the probability of a trace in a stochastic model.", "event log", BufferedDataTable.TYPE);
+		super("Ebi sample folds", "Compute the probability of a trace in a stochastic model.", "event log", XLogPortObject.TYPE);
 	}
 }
