@@ -35,29 +35,29 @@ public class EbiAnaCompNodeModel {
     }
     
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
-    	    try {
-                final Object logPortObject = input.getInPortObject(0);
+	    try {
+            final Object logPortObject = input.getInPortObject(0);
 
-    	        final DataTableSpec spec = TableUtil.createOutputSpec("Ebi Completeness", "completeness", StringCell.TYPE);
-    	        final BufferedDataContainer container =
-    	            input.getExecutionContext().createDataContainer(spec);
-    	        
-                final String xesContent = XESUtil.writeLogToXesString(logPortObject);
+	        final DataTableSpec spec = TableUtil.createOutputSpec("Ebi Completeness", "completeness", StringCell.TYPE);
+	        final BufferedDataContainer container =
+	            input.getExecutionContext().createDataContainer(spec);
+	        
+            final String xesContent = XESUtil.writeLogToXesString(logPortObject);
 
-                final String result = CallEbi.call_ebi(
-                		"Ebi analyse completeness",
-                		".frac",
-                		new String[] {xesContent});
+            final String result = CallEbi.call_ebi(
+            		"Ebi analyse completeness",
+            		".frac",
+            		new String[] {xesContent});
 
-    	        container.addRowToTable(new DefaultRow(
-    	            "Row0",
-    	            new StringCell(result)));
+	        container.addRowToTable(new DefaultRow(
+	            "Row0",
+	            new StringCell(result)));
 
-    	        container.close();
-    	        output.setOutData(0, container.getTable());
-    	    } catch (Exception ex) {
-    	        throw new RuntimeException(ex);
-    	    }
-    	}
+	        container.close();
+	        output.setOutData(0, container.getTable());
+	    } catch (Exception ex) {
+	        throw new RuntimeException(ex);
+	    }
+	}
 }
 

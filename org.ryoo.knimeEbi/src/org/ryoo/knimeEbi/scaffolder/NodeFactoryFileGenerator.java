@@ -114,7 +114,7 @@ public class NodeFactoryFileGenerator {
 	        case "directly follows model" ->
 	        	"DFMPortObject";
 	            
-	        case "labelled Petri net", "LoLA Petri net", "Petri net markup language", "stochastic labelled Petri net" ->
+	        case "labelled Petri net", "LoLa Petri net", "Petri net markup language", "stochastic labelled Petri net" ->
 	            "PetriNetPortObject";
 
 	        case "process tree", "process tree markup language", "stochastic process tree" ->
@@ -135,6 +135,7 @@ public class NodeFactoryFileGenerator {
 							+ "import org.knime.core.node.BufferedDataContainer;\r\n"
 							+ "import org.knime.core.node.BufferedDataTable;\r\n"
 							+ "import org.knime.core.node.InvalidSettingsException;\r\n"
+							+ "import org.knime.node.DefaultModel;\r\n"
 							+ "\r\n"
 							+ "import org.pm4knime.portobject.XLogPortObjectSpec;\r\n"
 							+ "\r\n"
@@ -144,6 +145,7 @@ public class NodeFactoryFileGenerator {
 		}
 		else {
 			portTypeImport = "import org.knime.core.node.InvalidSettingsException;\r\n"
+							+ "import org.knime.node.DefaultModel;\r\n"
 							+ "\r\n"
 							+ "import org.pm4knime.portobject.XLogPortObjectSpec;\r\n" // TODO: Add case for portType = XLog
 							+ "import org.pm4knime.portobject." + portType + ";\r\n"
@@ -157,7 +159,73 @@ public class NodeFactoryFileGenerator {
 		return portTypeImport;
 	}
 	
-	private static void createEbiNodeFactory(String commandName, String alias, String description, String output) {
+	private static String setConfigure(final String portType, final String commandName) {
+		String configureString = "";
+		
+		if(portType == "BufferedDataTable") {
+			configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
+						+ "    	throws InvalidSettingsException {\r\n"
+						+ "    	\r\n"
+						+ "        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {\r\n"
+						+ "            throw new InvalidSettingsException(\"Input is not a valid Event Log!\");\r\n"
+						+ "        }\r\n"
+						+ "\r\n"
+						+ "        output.setOutSpec(0, TableUtil.createOutputSpec(\"" + commandName + "\", \"" + commandName + "\", StringCell.TYPE));\r\n"
+						+ "    }";
+		}
+		else {
+			configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
+						+ "    	throws InvalidSettingsException {\r\n"
+						+ "    	\r\n"
+						+ "        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {\r\n"
+						+ "            throw new InvalidSettingsException(\"Input is not a valid Event Log!\");\r\n"
+						+ "        }\r\n"
+						+ "\r\n"
+						+ "        output.setOutSpec(0, new " + portType + "Spec());\r\n"
+						+ "    }";
+		}
+		
+		return configureString;
+	}
+	
+	private static String setExecute(final String portType, final String commandName, final String outputType) {
+		String executeString = "";
+		
+		if(portType == "BufferedDataTable") {
+			executeString = "public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {\r\n"
+						+ "	    try {\r\n"
+						+ "            final Object logPortObject = input.getInPortObject(0);\r\n"
+						+ "\r\n"
+						+ "	        final DataTableSpec spec = TableUtil.createOutputSpec(\"Ebi Completeness\", \"completeness\", StringCell.TYPE);\r\n"
+						+ "	        final BufferedDataContainer container =\r\n"
+						+ "	            input.getExecutionContext().createDataContainer(spec);\r\n"
+						+ "	        \r\n"
+						+ "            final String xesContent = XESUtil.writeLogToXesString(logPortObject);\r\n"
+						+ "\r\n"
+						+ "            final String result = CallEbi.call_ebi(\r\n"
+						+ "            		\"" + commandName + "\",\r\n"
+						+ "            		\"" + outputType + "\",\r\n"
+						+ "            		new String[] {xesContent});\r\n"
+						+ "\r\n"
+						+ "	        container.addRowToTable(new DefaultRow(\r\n"
+						+ "	            \"Row0\",\r\n"
+						+ "	            new StringCell(result)));\r\n"
+						+ "\r\n"
+						+ "	        container.close();\r\n"
+						+ "	        output.setOutData(0, container.getTable());\r\n"
+						+ "	    } catch (Exception ex) {\r\n"
+						+ "	        throw new RuntimeException(ex);\r\n"
+						+ "	    }\r\n"
+						+ "	}";
+		}
+		else {
+			executeString = "";
+		}
+		
+		return executeString;
+	}
+	
+	private static void createEbiNodeFactory(String commandName, String alias, String description, String outputType) {
 		// TODO: scaffold class that extends EbiDefaultNodeFactory and add factories to plugin.xml
 		// For Ebi convert log possibly create dynamic input ports and fixed ouput port XLog
 		String classNamePrefix = toClassNamePrefix(alias);
@@ -175,12 +243,12 @@ public class NodeFactoryFileGenerator {
 		System.out.println(outputPath);
 
 		String portType = "";
-		if(EbiTableOutputType.isTableCompatible(output)) {
+		if(EbiTableOutputType.isTableCompatible(outputType)) {
 			portType = "BufferedDataTable";
 		}
 		else {
 			// TODO: change, so that the output actually matches to the portTypes of pm4knime. Check portType and add import of the portObject.
-			portType = getPm4KnimePortType(output);
+			portType = getPm4KnimePortType(outputType);
 		}
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)){
@@ -195,15 +263,25 @@ public class NodeFactoryFileGenerator {
 			writer.newLine();
 				writer.write("	public " + factoryClassName + "() {");
 				writer.newLine();
-					writer.write("		super(\"" + commandName + "\", \"" + description + "\", \"" + output + "\", " + portType + ".TYPE);");
+					writer.write("		super(\"" + commandName + "\", \"" + description + "\", \"" + outputType + "\", " + portType + ".TYPE);");
 					writer.newLine();
 				writer.write("	}");
+				writer.newLine();
+				writer.newLine();
+				String configure = setConfigure(portType, commandName);
+				writer.write(configure);
+				writer.newLine();
+				writer.newLine();
+				String execute = setExecute(portType, commandName, outputType);
+				writer.write(execute);
 				writer.newLine();
 			writer.write("}");
 		} catch (IOException e) {
 			System.out.println("Error creating EbiNodeFactory.");
 			e.printStackTrace();
 		}
+		
+		// TODO: new outputPath to plugin.xml
 	}
 	
 	/*
@@ -255,7 +333,7 @@ public class NodeFactoryFileGenerator {
 			String commandName = "";
 			String alias = "";
 			String description = "";
-			String output = "";
+			String outputType = "";
 			
 			// Read each line until \ebifilehandlers
 			while(!(line = reader.readLine()).contains("\\ebifilehandlers") && (line != null) && (numberOfCommandsLeft > 0)) {
@@ -283,7 +361,7 @@ public class NodeFactoryFileGenerator {
 				}
 				
 				if(line.contains("\\noindent Output:")) {
-					output = extractOutputType(line);
+					outputType = extractOutputType(line);
 				}
 				
 				if(line.contains("This command is not available in Java and ProM") && commandName != null) {
@@ -296,10 +374,10 @@ public class NodeFactoryFileGenerator {
 					writer.newLine();
 					writer.write(description);
 					writer.newLine();
-					writer.write(output);
+					writer.write(outputType);
 					writer.newLine();
 					writer.newLine();
-					createEbiNodeFactory(commandName, alias, description, output);
+					createEbiNodeFactory(commandName, alias, description, outputType);
 				}
 			}
 			
