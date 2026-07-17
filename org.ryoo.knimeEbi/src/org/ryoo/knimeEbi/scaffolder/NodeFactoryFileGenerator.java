@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.processmining.ebi.CallEbi;
 
@@ -27,6 +29,26 @@ public class NodeFactoryFileGenerator {
 			Files.writeString(outputPath, manual, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			System.out.println("Error writing manual to txt-file.");
+			e.printStackTrace();
+		}
+	}
+	
+	public static void createEbiCommands() {
+		String ebiCommands = CallEbi.call_ebi("Ebi itself java", "text", new String[0]);
+		
+		Path outputPath = Path.of(
+			"src",
+			"org",
+			"ryoo",
+			"knimeEbi",
+			"scaffolder",
+			"ebi-itself-java-output.txt" // \ebicommands to \ebifilehandlers
+		);
+			
+		try {
+			Files.writeString(outputPath, ebiCommands, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			System.out.println("Error writing output of \"Ebi itself java\" to txt-file.");
 			e.printStackTrace();
 		}
 	}
@@ -190,7 +212,7 @@ public class NodeFactoryFileGenerator {
 	
 	private static String setExecute(final String portType, final String commandName, final String outputType) {
 		String executeString = "";
-		
+		// TODO: How many inputs from metadata and what kind of mandatory parameters -> Settings or Dialog?
 		if(portType == "BufferedDataTable") {
 			executeString = "public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {\r\n"
 						+ "	    try {\r\n"
@@ -223,6 +245,112 @@ public class NodeFactoryFileGenerator {
 		}
 		
 		return executeString;
+	}
+	
+	private static void addNodeToPlugin(final String factoryClassName) throws IOException {
+
+	    Path pluginXml = Path.of("plugin.xml");
+
+	    if (!Files.exists(pluginXml)) {
+	        throw new IOException(
+	            "Cannot find plugin.xml at: "
+	                + pluginXml.toAbsolutePath()
+	        );
+	    }
+
+	    String xml = Files.readString(
+	        pluginXml,
+	        StandardCharsets.UTF_8
+	    );
+
+	    // Do not add the same factory more than once.
+	    Pattern existingFactoryPattern = Pattern.compile(
+	        "factory-class\\s*=\\s*[\"']"
+	            + Pattern.quote(factoryClassName)
+	            + "[\"']"
+	    );
+
+	    if (existingFactoryPattern.matcher(xml).find()) {
+	        System.out.println(
+	            factoryClassName + " is already registered in plugin.xml."
+	        );
+	        return;
+	    }
+
+	    String updatedXml = findOrCreateNodeExtension(
+	        xml,
+	        factoryClassName
+	    );
+
+	    Files.writeString(
+	        pluginXml,
+	        updatedXml,
+	        StandardCharsets.UTF_8
+	    );
+	}
+
+	private static String findOrCreateNodeExtension(final String xml, final String factoryClassName) {
+
+	    String newline = xml.contains("\r\n") ? "\r\n" : "\n";
+
+	    Pattern extensionPattern = Pattern.compile(
+	        "<extension\\b"
+	            + "(?=[^>]*\\bpoint\\s*=\\s*[\"']"
+	            + "org\\.knime\\.workbench\\.repository\\.nodes"
+	            + "[\"'])"
+	            + "[^>]*>",
+	        Pattern.DOTALL
+	    );
+
+	    Matcher matcher = extensionPattern.matcher(xml);
+
+	    String nodeXml =
+	        "      <node" + newline
+	            + "            category-path=\"/\"" + newline
+	            + "            factory-class=\""
+	            + factoryClassName
+	            + "\"/>"
+	            + newline;
+
+	    if (matcher.find()) {
+	        int extensionEnd = xml.indexOf(
+	            "</extension>",
+	            matcher.end()
+	        );
+
+	        if (extensionEnd < 0) {
+	            throw new IllegalStateException(
+	                "The KNIME node extension has no closing </extension> tag."
+	            );
+	        }
+
+	        // Add another node to the existing extension.
+	        return xml.substring(0, extensionEnd)
+	            + nodeXml
+	            + xml.substring(extensionEnd);
+	    }
+
+	    int pluginEnd = xml.lastIndexOf("</plugin>");
+
+	    if (pluginEnd < 0) {
+	        throw new IllegalStateException(
+	            "plugin.xml has no closing </plugin> tag."
+	        );
+	    }
+
+	    // No node extension exists, so create one.
+	    String extensionXml =
+	        "   <extension" + newline
+	            + "         point=\"org.knime.workbench.repository.nodes\">"
+	            + newline
+	            + nodeXml
+	            + "   </extension>"
+	            + newline
+	            + newline;
+
+	    return xml.substring(0, pluginEnd)
+	        + extensionXml
+	        + xml.substring(pluginEnd);
 	}
 	
 	private static void createEbiNodeFactory(String commandName, String alias, String description, String outputType) {
@@ -277,16 +405,23 @@ public class NodeFactoryFileGenerator {
 				writer.newLine();
 			writer.write("}");
 		} catch (IOException e) {
-			System.out.println("Error creating EbiNodeFactory.");
+			System.out.println("Error creating " + factoryClassName + ".");
 			e.printStackTrace();
 		}
 		
-		// TODO: new outputPath to plugin.xml
+		try {
+			String fullyQualifiedFactoryClassName = "org.ryoo.knimeEbi.node." + factoryClassName;
+			
+			addNodeToPlugin(fullyQualifiedFactoryClassName);
+		} catch (IOException e) {
+			System.out.println("Error adding " + factoryClassName + " to plugin.xml.");
+			e.printStackTrace();
+		}
 	}
 	
 	/*
 	 * Extracts only Ebi commands that are available in Java.
-	 * Creates list of command names in ebi-commands.txt and ebi-commands.json, which stores all metadata of each command.
+	 * Creates list of command names in ebi-commands.txt, which stores all metadata of each command.
 	 * Immediately scaffold from ebi-manual.txt
 	 */
 	public static void createEbiNodes() throws IOException { // generateEbiNodes, so immediately scaffold
@@ -399,6 +534,7 @@ public class NodeFactoryFileGenerator {
 	public static void main(String[] args) {
 		// TODO: Create CI/CD Pipeline
 		createEbiManual();
+		createEbiCommands();
 		
 		try {
 		    createEbiNodes();
