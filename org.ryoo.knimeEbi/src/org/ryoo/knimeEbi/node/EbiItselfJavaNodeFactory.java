@@ -14,9 +14,9 @@ import org.processmining.ebi.CallEbi;
 
 import org.ryoo.knimeEbi.util.*;
 
-public class EbiConfCsscSampleNodeFactory extends EbiDefaultNodeFactory {
-	public EbiConfCsscSampleNodeFactory() {
-		super("Ebi conformance chi-squared-sample", "Compute chi-square stochastic conformance, if both inputs need to be sampled. If one input is a log or a finite stochastic language, then use `cssc`.", "fraction", BufferedDataTable.TYPE);
+public class EbiItselfJavaNodeFactory extends EbiDefaultNodeFactory {
+	public EbiItselfJavaNodeFactory() {
+		super("Ebi itself java", "\noindent Output: text, which can be written as text.", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
@@ -26,7 +26,7 @@ public static void configure(final DefaultModel.ConfigureInput input, final Defa
             throw new InvalidSettingsException("Input is not a valid Event Log!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance chi-squared-sample", "Ebi conformance chi-squared-sample", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi itself java", "Ebi itself java", StringCell.TYPE));
     }
 
 public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
@@ -40,8 +40,8 @@ public static void execute(final DefaultModel.ExecuteInput input, final DefaultM
             final String xesContent = XESUtil.writeLogToXesString(logPortObject);
 
             final String result = CallEbi.call_ebi(
-            		"Ebi conformance chi-squared-sample",
-            		"fraction",
+            		"Ebi itself java",
+            		"text",
             		new String[] {xesContent});
 
 	        container.addRowToTable(new DefaultRow(

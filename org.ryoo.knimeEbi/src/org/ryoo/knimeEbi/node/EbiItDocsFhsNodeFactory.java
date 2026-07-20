@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiItDocsFhsNodeFactory extends EbiDefaultNodeFactory {
 	public EbiItDocsFhsNodeFactory() {
-		super("Ebi itself java", "Print the HTML documentation of Ebi's file handlers.", "text", BufferedDataTable.TYPE);
+		super("Ebi itself documentation file-handlers", "\noindent Output: text, which can be written as text.", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
@@ -26,7 +26,7 @@ public static void configure(final DefaultModel.ConfigureInput input, final Defa
             throw new InvalidSettingsException("Input is not a valid Event Log!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi itself java", "Ebi itself java", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi itself documentation file-handlers", "Ebi itself documentation file-handlers", StringCell.TYPE));
     }
 
 public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
@@ -40,7 +40,7 @@ public static void execute(final DefaultModel.ExecuteInput input, final DefaultM
             final String xesContent = XESUtil.writeLogToXesString(logPortObject);
 
             final String result = CallEbi.call_ebi(
-            		"Ebi itself java",
+            		"Ebi itself documentation file-handlers",
             		"text",
             		new String[] {xesContent});
 

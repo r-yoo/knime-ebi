@@ -4,14 +4,11 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortType;
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNodeFactory;
+import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.knime.node.DefaultModel;
 
-import org.pm4knime.portobject.XLogPortObject;
-import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
-
-//BufferedDataTable.TYPE is the standard table port type.
-public class EbiDefaultNodeFactory extends DefaultNodeFactory{
-	public EbiDefaultNodeFactory(String commandName, String description, String outputName, PortType outputPortType) {
+public class EbiDefaultZeroInputNodeFactory extends DefaultNodeFactory{
+	public EbiDefaultZeroInputNodeFactory(String commandName, String description, String outputName, PortType outputPortType) {
 		super(
 			   DefaultNode.create()
 			   		.name(commandName)
@@ -20,16 +17,15 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 			   		.fullDescription(description)
 			   		.sinceVersion(0, 0, 0) // change to real version
 			  		.ports(p -> p
-                         .addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
 		                 .addOutputPort(outputName, outputName, outputPortType))
 		            .model(m -> m
 		                    .withoutParameters()
-		                    .configure(EbiDefaultNodeFactory::configure)
-		                    .execute(EbiDefaultNodeFactory::execute))
-		            .nodeType(NodeType.Manipulator));
+		                    .configure(EbiDefaultZeroInputNodeFactory::configure)
+		                    .execute(EbiDefaultZeroInputNodeFactory::execute))
+		            .nodeType(NodeType.Source));
 	}
 	
-	public EbiDefaultNodeFactory(EbiCommandMetadata metadata) {
+	public EbiDefaultZeroInputNodeFactory(EbiCommandMetadata metadata) {
 		this(metadata.commandName, metadata.description, metadata.outputName, metadata.outputPortType);
 	}
 	

@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiInfoNodeFactory extends EbiDefaultNodeFactory {
 	public EbiInfoNodeFactory() {
-		super("Ebi information", "Show information about a file.", "text", BufferedDataTable.TYPE);
+		super("Ebi information", "\noindent Output: text, which can be written as text.", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

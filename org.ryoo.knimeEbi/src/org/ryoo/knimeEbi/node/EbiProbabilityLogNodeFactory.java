@@ -14,9 +14,9 @@ import org.processmining.ebi.CallEbi;
 
 import org.ryoo.knimeEbi.util.*;
 
-public class EbiDinsPfxtDfaNodeFactory extends EbiDefaultNodeFactory {
-	public EbiDinsPfxtDfaNodeFactory() {
-		super("Ebi discover-non-stochastic prefix-tree deterministic-finite-automaton", "Discover a DFA that is a prefix tree of the log.", "deterministic finite automaton", BufferedDataTable.TYPE);
+public class EbiProbabilityLogNodeFactory extends EbiDefaultNodeFactory {
+	public EbiProbabilityLogNodeFactory() {
+		super("Ebi probability log", "More information:", "fraction", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
@@ -26,7 +26,7 @@ public static void configure(final DefaultModel.ConfigureInput input, final Defa
             throw new InvalidSettingsException("Input is not a valid Event Log!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi discover-non-stochastic prefix-tree deterministic-finite-automaton", "Ebi discover-non-stochastic prefix-tree deterministic-finite-automaton", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi probability log", "Ebi probability log", StringCell.TYPE));
     }
 
 public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
@@ -40,8 +40,8 @@ public static void execute(final DefaultModel.ExecuteInput input, final DefaultM
             final String xesContent = XESUtil.writeLogToXesString(logPortObject);
 
             final String result = CallEbi.call_ebi(
-            		"Ebi discover-non-stochastic prefix-tree deterministic-finite-automaton",
-            		"deterministic finite automaton",
+            		"Ebi probability log",
+            		"fraction",
             		new String[] {xesContent});
 
 	        container.addRowToTable(new DefaultRow(

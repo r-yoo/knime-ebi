@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiTstLcatNodeFactory extends EbiDefaultNodeFactory {
 	public EbiTstLcatNodeFactory() {
-		super("Ebi test log-categorical-attribute", "Test the hypothesis that the sub-logs defined by the categorical attribute are derived from identical processes.", "text", BufferedDataTable.TYPE);
+		super("Ebi test log-categorical-attribute", "More information:", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

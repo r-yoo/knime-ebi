@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiAnaCompNodeFactory extends EbiDefaultNodeFactory {
 	public EbiAnaCompNodeFactory() {
-		super("Ebi analyse completeness", "Estimate the completeness of an event log using species discovery.", "fraction", BufferedDataTable.TYPE);
+		super("Ebi analyse completeness", "More information:", "fraction", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

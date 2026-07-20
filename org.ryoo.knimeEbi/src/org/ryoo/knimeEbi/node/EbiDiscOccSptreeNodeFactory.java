@@ -13,7 +13,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiDiscOccSptreeNodeFactory extends EbiDefaultNodeFactory {
 	public EbiDiscOccSptreeNodeFactory() {
-		super("Ebi discover occurrence stochastic-process-tree", "Give each leaf a weight that matches the occurrences of its label; silent leaves get a weight of 1.", "stochastic process tree", ProcessTreePortObject.TYPE);
+		super("Ebi discover occurrence stochastic-process-tree", "More information:", "stochastic process tree", ProcessTreePortObject.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

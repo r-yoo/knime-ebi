@@ -1,12 +1,15 @@
 package org.ryoo.knimeEbi.scaffolder;
 
-public enum EbiTableOutputType {
+public enum EbiTableOutputType { // -> all to .txt output format and then KNIME table
     FRACTION("fraction"),
-    TEXT("text"),
-    BOOL("bool"),
+    STRING("string"),
+    BOOL("boolean"),
     ROOT("root"),
     LOGARITHM("logarithm"),
-    ROOTLOG("rootlog");
+    ROOTLOG("rootlog"),
+    ROOTLOGDIV("rootlogdiv"),
+    LOGDIV("logdiv");
+	
 
     private final String ebiName;
 

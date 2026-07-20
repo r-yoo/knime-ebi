@@ -163,6 +163,27 @@
       <node
             category-path="/"
             factory-class="org.ryoo.knimeEbi.node.EbiTstLcatNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiConvertLogNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiFilterTracesEmptyNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiItselfDocumentationHomeNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiItselfHtmlNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiItselfJavaNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiProbabilityLogNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiSampleFoldsNodeFactory"/>
 </extension>
    
 </plugin>

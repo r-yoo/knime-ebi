@@ -13,7 +13,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiDiscDfgNodeFactory extends EbiDefaultNodeFactory {
 	public EbiDiscDfgNodeFactory() {
-		super("Ebi discover directly-follows-graph", "Discover a directly follows graph.", "directly follows graph", DfgMsdPortObject.TYPE);
+		super("Ebi discover directly-follows-graph", "More information:", "directly follows graph", DfgMsdPortObject.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

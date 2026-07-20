@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiItDocsCommNodeFactory extends EbiDefaultNodeFactory {
 	public EbiItDocsCommNodeFactory() {
-		super("Ebi itself documentation commands", "Print the HTML documentation of Ebi's commands.", "text", BufferedDataTable.TYPE);
+		super("Ebi itself documentation commands", "\noindent Output: text, which can be written as text.", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

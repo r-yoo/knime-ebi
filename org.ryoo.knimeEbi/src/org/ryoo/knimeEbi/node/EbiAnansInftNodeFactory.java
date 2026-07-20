@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiAnansInftNodeFactory extends EbiDefaultNodeFactory {
 	public EbiAnansInftNodeFactory() {
-		super("Ebi analyse-non-stochastic infinitely-many-traces", "Compute whether the model has infinitely many traces. The computation may not terminate if the model is unbounded.", "bool", BufferedDataTable.TYPE);
+		super("Ebi analyse-non-stochastic infinitely-many-traces", "\noindent Output: bool, which can be written as a boolean.", "bool", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

@@ -14,9 +14,9 @@ import org.processmining.ebi.CallEbi;
 
 import org.ryoo.knimeEbi.util.*;
 
-public class EbiConfJsscNodeFactory extends EbiDefaultNodeFactory {
-	public EbiConfJsscNodeFactory() {
-		super("Ebi conformance jensen-shannon", "Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance.", "rootlog", BufferedDataTable.TYPE);
+public class EbiItselfDocumentationHomeNodeFactory extends EbiDefaultNodeFactory {
+	public EbiItselfDocumentationHomeNodeFactory() {
+		super("Ebi itself documentation home", "\noindent Output: text, which can be written as text.", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
@@ -26,7 +26,7 @@ public static void configure(final DefaultModel.ConfigureInput input, final Defa
             throw new InvalidSettingsException("Input is not a valid Event Log!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance jensen-shannon", "Ebi conformance jensen-shannon", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi itself documentation home", "Ebi itself documentation home", StringCell.TYPE));
     }
 
 public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
@@ -40,8 +40,8 @@ public static void execute(final DefaultModel.ExecuteInput input, final DefaultM
             final String xesContent = XESUtil.writeLogToXesString(logPortObject);
 
             final String result = CallEbi.call_ebi(
-            		"Ebi conformance jensen-shannon",
-            		"rootlog",
+            		"Ebi itself documentation home",
+            		"text",
             		new String[] {xesContent});
 
 	        container.addRowToTable(new DefaultRow(

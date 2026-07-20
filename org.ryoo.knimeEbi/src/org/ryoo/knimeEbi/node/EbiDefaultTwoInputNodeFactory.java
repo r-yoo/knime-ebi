@@ -10,8 +10,8 @@ import org.pm4knime.portobject.XLogPortObject;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 
 //BufferedDataTable.TYPE is the standard table port type.
-public class EbiDefaultNodeFactory extends DefaultNodeFactory{
-	public EbiDefaultNodeFactory(String commandName, String description, String outputName, PortType outputPortType) {
+public class EbiDefaultTwoInputNodeFactory extends DefaultNodeFactory{
+	public EbiDefaultTwoInputNodeFactory(String commandName, String description, String secondInputName, PortType secondInputPortType, String outputName, PortType outputPortType) {
 		super(
 			   DefaultNode.create()
 			   		.name(commandName)
@@ -20,17 +20,18 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 			   		.fullDescription(description)
 			   		.sinceVersion(0, 0, 0) // change to real version
 			  		.ports(p -> p
-                         .addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
-		                 .addOutputPort(outputName, outputName, outputPortType))
+			  				.addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
+			  				.addInputPort(secondInputName, secondInputName, secondInputPortType)
+			  				.addOutputPort(outputName, outputName, outputPortType))
 		            .model(m -> m
 		                    .withoutParameters()
-		                    .configure(EbiDefaultNodeFactory::configure)
-		                    .execute(EbiDefaultNodeFactory::execute))
+		                    .configure(EbiDefaultTwoInputNodeFactory::configure)
+		                    .execute(EbiDefaultTwoInputNodeFactory::execute))
 		            .nodeType(NodeType.Manipulator));
 	}
 	
-	public EbiDefaultNodeFactory(EbiCommandMetadata metadata) {
-		this(metadata.commandName, metadata.description, metadata.outputName, metadata.outputPortType);
+	public EbiDefaultTwoInputNodeFactory(EbiCommandMetadata metadata) {
+		this(metadata.commandName, metadata.description, metadata.secondInputName, metadata.secondInputPortType, metadata.outputName, metadata.outputPortType);
 	}
 	
 	// Need to overwrite configure and execute -> static can not be overwritten, just define method with same signature

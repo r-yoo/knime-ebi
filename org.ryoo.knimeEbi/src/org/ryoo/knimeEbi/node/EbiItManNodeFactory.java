@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiItManNodeFactory extends EbiDefaultNodeFactory {
 	public EbiItManNodeFactory() {
-		super("Ebi itself manual", "Print the automatically generated parts of the manual of Ebi in Latex format.", "text", BufferedDataTable.TYPE);
+		super("Ebi itself manual", "\noindent Output: text, which can be written as text.", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

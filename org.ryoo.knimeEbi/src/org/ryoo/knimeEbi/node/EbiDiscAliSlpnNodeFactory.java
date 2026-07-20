@@ -13,7 +13,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiDiscAliSlpnNodeFactory extends EbiDefaultNodeFactory {
 	public EbiDiscAliSlpnNodeFactory() {
-		super("Ebi discover alignments stochastic-labelled-Petri-nets", "Give each transition a weight that matches the aligned occurrences of its label. The model must be livelock-free.", "stochastic labelled Petri net", PetriNetPortObject.TYPE);
+		super("Ebi discover alignments stochastic-labelled-Petri-nets", "More information:", "stochastic labelled Petri net", PetriNetPortObject.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

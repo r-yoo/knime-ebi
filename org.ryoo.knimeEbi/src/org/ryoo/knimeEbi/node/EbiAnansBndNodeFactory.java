@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiAnansBndNodeFactory extends EbiDefaultNodeFactory {
 	public EbiAnansBndNodeFactory() {
-		super("Ebi analyse-non-stochastic bounded", "Compute whether the model has a bounded state space.For Petri nets, a coverability graph is computed.For other types of models, `true' is returned.", "bool", BufferedDataTable.TYPE);
+		super("Ebi analyse-non-stochastic bounded", "For Petri nets, a coverability graph is computed.For other types of models, `true' is returned.", "bool", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
