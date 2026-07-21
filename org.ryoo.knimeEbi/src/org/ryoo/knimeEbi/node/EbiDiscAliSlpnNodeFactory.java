@@ -8,7 +8,7 @@ import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 
 import org.processmining.ebi.CallEbi;
-
+import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;
 import org.ryoo.knimeEbi.util.*;
 
 public class EbiDiscAliSlpnNodeFactory extends EbiDefaultNodeFactory {

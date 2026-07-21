@@ -37,7 +37,7 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	// TODO: Delete if not needed anymore
-	public static void printEbiPluginsClass() {
+	public static void printEbiItselfJava() {
 		String ebiCommands = CallEbi.call_ebi("Ebi itself java", "text", new String[0]);
 		
 		Path outputPath = Path.of(
@@ -123,32 +123,6 @@ public class NodeFactoryFileGenerator {
 	    }
 
 	    return result.toString();
-	}
-	
-	private static String getPm4KnimePortType(final String ebiOutput) {
-		// TODO: Include all supported files of Ebi, and we need to add specific output parameters in calling Ebi for the stochastic outputs
-	    return switch (ebiOutput) {
-	        case "event log", "XES event log", "compressed event log" ->
-	            "XLogPortObject";
-
-	        case "business process model and notation", "stochastic deterministic finite automaton", "stochastic non-deterministic finite automaton" -> 
-	            "BpmnPortObject";
-
-	        case "directly follows graph" ->
-	            "DfgMsdPortObject";
-	           
-	        case "directly follows model" ->
-	        	"DFMPortObject";
-	            
-	        case "labelled Petri net", "LoLa Petri net", "Petri net markup language", "stochastic labelled Petri net" ->
-	            "PetriNetPortObject";
-
-	        case "process tree", "process tree markup language", "stochastic process tree" ->
-	            "ProcessTreePortObject";
-
-	        default ->
-	            "BufferedDataTable"; // or skip/TODO
-	    };
 	}
 	
 	private static String setPortTypeImport(final String portType) {
@@ -363,7 +337,7 @@ public class NodeFactoryFileGenerator {
 		// TODO: Implement logic
 		// Check zero input, one input or two input
 		if(ebiCommandBlock.firstInputName == "") {
-			
+			return;
 		}
 		else if(ebiCommandBlock.secondInputName == "") {
 			
@@ -373,18 +347,32 @@ public class NodeFactoryFileGenerator {
 		}
 	}
 	
+	private static boolean containsPluginDeclaration(final String metadataBlock) {
+	    if (metadataBlock == null) {
+	        return false;
+	    }
+
+	    int headerEnd = metadataBlock.indexOf("==");
+
+	    if (headerEnd < 0) {
+	        return false;
+	    }
+
+	    String contentAfterHeader = metadataBlock.substring(headerEnd + 2);
+	    return contentAfterHeader.contains("@Plugin(");
+	}
+	
 	/*
 	 * Extracts only Ebi commands that are available in Java.
 	 * Creates list of command names in ebi-commands.txt, which stores all metadata of each command.
-	 * Immediately scaffold from ebi-manual.txt
+	 * Immediately scaffold from output of Ebi itself java
 	 */
-	
 	// TODO: original text (iterate through split elements) -> metadata parameter call EbiCommandMetadata constructor
 	// Look up regex Java, regex online editor
-	public static void generateEbiNodes() throws IOException { // generateEbiNodes, so immediately scaffold -> change to only parsing from 
+	public static void generateEbiNodes(){ // generateEbiNodes, so immediately scaffold -> change to only parsing from ebi-itself-java-output.txt
 		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", "text", new String[0]);
 		
-		String [] ebiCommandsMetadata = ebiItselfJavaOutput.split("// ==");
+		String [] ebiCommandsMetadataBlocks = ebiItselfJavaOutput.split("// == command");
 		
 		Path outputPathEbiCommandsTxt = Path.of(
 			"src",
@@ -397,15 +385,21 @@ public class NodeFactoryFileGenerator {
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(outputPathEbiCommandsTxt, StandardCharsets.UTF_8)){
 			// Iterate from 2nd element
-			for (int i = 1; i < ebiCommandsMetadata.length; i++) {
-				EbiCommandMetadata ebiCommandBlock = new EbiCommandMetadata(ebiCommandsMetadata[i].trim());
+			for (int i = 1; i < ebiCommandsMetadataBlocks.length; i++) {
+				String metadataBlock = ebiCommandsMetadataBlocks[i].trim();
+				
+				if(!containsPluginDeclaration(metadataBlock)) {
+					continue;
+				}
+				
+			    EbiCommandMetadata ebiCommandMetadata = new EbiCommandMetadata(metadataBlock);
 				
 				// Print out all attributes of ebiCommandBlock to ebi-commands.txt
-				writer.write(ebiCommandBlock.toTextBlock());
+				writer.write(ebiCommandMetadata.toTextBlock());
 				writer.newLine();
 				writer.newLine();
 				
-				generateEbiNodeFactory(ebiCommandBlock);
+				generateEbiNodeFactory(ebiCommandMetadata);
 			}
 			
 			System.out.println("Generated all Ebi Node Factories.");
@@ -420,30 +414,26 @@ public class NodeFactoryFileGenerator {
 	public static void main(String[] args) {
 		// TODO: Create CI/CD Pipeline
 //		createEbiManual();
-//		printEbiPluginsClass();
+//		printEbiItselfJava();
+//		
+		generateEbiNodes();
+		
+//		Path eventLogPath = Path.of( 
+//			"src",
+//			"org",
+//			"ryoo",
+//			"knimeEbi",
+//			"scaffolder",
+//			"event-log.xes"
+//		);
 //		
 //		try {
-//		    generateEbiNodes();
+//			String xesContent = Files.readString(eventLogPath, StandardCharsets.UTF_8);
+//			CallEbi.call_ebi("Ebi discover directly-follows-graph", ".dfg", new String[] {xesContent, "1"});
+//		 TODO: Research how to determine the parameters of an ebi function from ebi itself java
 //		} catch (IOException e) {
-//		    System.out.println("Error generating Ebi nodes.");
-//		    e.printStackTrace();
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
 //		}
-		
-		Path eventLogPath = Path.of( 
-			"src",
-			"org",
-			"ryoo",
-			"knimeEbi",
-			"scaffolder",
-			"event-log.xes"
-		);
-		
-		try {
-			String xesContent = Files.readString(eventLogPath, StandardCharsets.UTF_8);
-			CallEbi.call_ebi("Ebi discover directly-follows-graph", ".dfg", new String[] {xesContent, ""});
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 }

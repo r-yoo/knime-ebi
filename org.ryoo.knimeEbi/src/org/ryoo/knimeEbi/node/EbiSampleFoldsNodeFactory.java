@@ -8,7 +8,7 @@ import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
 
 import org.processmining.ebi.CallEbi;
-
+import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;
 import org.ryoo.knimeEbi.util.*;
 
 public class EbiSampleFoldsNodeFactory extends EbiDefaultNodeFactory {

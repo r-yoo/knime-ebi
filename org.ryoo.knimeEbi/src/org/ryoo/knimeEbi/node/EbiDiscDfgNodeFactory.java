@@ -8,7 +8,7 @@ import org.pm4knime.portobject.DfgMsdPortObject;
 import org.pm4knime.portobject.DfgMsdPortObjectSpec;
 
 import org.processmining.ebi.CallEbi;
-
+import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;
 import org.ryoo.knimeEbi.util.*;
 
 public class EbiDiscDfgNodeFactory extends EbiDefaultNodeFactory {

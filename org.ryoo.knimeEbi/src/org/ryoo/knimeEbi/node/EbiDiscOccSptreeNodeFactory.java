@@ -8,7 +8,7 @@ import org.pm4knime.portobject.ProcessTreePortObject;
 import org.pm4knime.portobject.ProcessTreePortObjectSpec;
 
 import org.processmining.ebi.CallEbi;
-
+import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;
 import org.ryoo.knimeEbi.util.*;
 
 public class EbiDiscOccSptreeNodeFactory extends EbiDefaultNodeFactory {

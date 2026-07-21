@@ -1,4 +1,4 @@
-package org.ryoo.knimeEbi.node;
+package org.ryoo.knimeEbi.defaultNode;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortType;
