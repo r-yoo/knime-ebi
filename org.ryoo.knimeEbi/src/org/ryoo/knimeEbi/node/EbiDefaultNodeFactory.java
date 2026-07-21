@@ -15,7 +15,7 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 		super(
 			   DefaultNode.create()
 			   		.name(commandName)
-			   		.icon("default.png")
+			   		.icon("default.png") // <- change to 
 			   		.shortDescription(description)
 			   		.fullDescription(description)
 			   		.sinceVersion(0, 0, 0) // change to real version

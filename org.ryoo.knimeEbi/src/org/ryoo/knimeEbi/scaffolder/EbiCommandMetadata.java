@@ -1,12 +1,16 @@
 package org.ryoo.knimeEbi.scaffolder;
 
+import java.util.Objects;
+
 import org.knime.core.node.port.PortType;
 
 public class EbiCommandMetadata {
 	public String commandName; 
 	public String description;
-	public String secondInputName; // only the second ebi parameter, empty if no second parameter
-	public PortType secondInputPortType;
+	public String firstInputName;
+	public PortType firstInputPortType;
+	public String secondInputName; // empty if no second parameter
+	public PortType secondInputPortType; // empty if no second parameter
 	public String outputName;
 	public PortType outputPortType;
 	
@@ -39,4 +43,19 @@ public class EbiCommandMetadata {
 	
 	// TODO: Input -> attributes of this class
 	// TODO: Hilfsfunktionen auslagern
+	public String toTextBlock() {
+	    String newline = System.lineSeparator();
+
+	    return String.join(
+	        newline,
+	        "commandName=" + Objects.toString(commandName, ""),
+	        "description=" + Objects.toString(description, ""),
+	        "firstInputName=" + Objects.toString(firstInputName, ""),
+	        "firstInputPortType=" + Objects.toString(firstInputPortType, ""),
+	        "secondInputName=" + Objects.toString(secondInputName, ""),
+	        "secondInputPortType=" + Objects.toString(secondInputPortType, ""),
+	        "outputName=" + Objects.toString(outputName, ""),
+	        "outputPortType=" + Objects.toString(outputPortType, "")
+	    );
+	}
 }

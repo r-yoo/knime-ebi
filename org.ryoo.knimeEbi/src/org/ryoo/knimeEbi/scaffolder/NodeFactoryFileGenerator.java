@@ -359,71 +359,17 @@ public class NodeFactoryFileGenerator {
 	        + xml.substring(pluginEnd);
 	}
 	
-	// TODO: Modify so that it takes an EbiCommandMetadata object as parameter
-	private static void generateEbiNodeFactory(String commandName, String alias, String description, String outputType) {
-		// TODO: scaffold class that extends EbiDefaultNodeFactory and add factories to plugin.xml
-		// For Ebi convert log possibly create dynamic input ports and fixed ouput port XLog
-		String classNamePrefix = toClassNamePrefix(alias);
-		String factoryClassName = classNamePrefix + "NodeFactory";
-		
-		Path outputPath = Path.of(
-	        "src",
-	        "org",
-	        "ryoo",
-	        "knimeEbi",
-	        "node",
-	        factoryClassName + ".java"
-	    );
-		
-		System.out.println(outputPath);
-
-		String portType = "";
-		if(EbiTableOutputType.isTableCompatible(outputType)) {
-			portType = "BufferedDataTable";
+	private static void generateEbiNodeFactory(EbiCommandMetadata ebiCommandBlock) {
+		// TODO: Implement logic
+		// Check zero input, one input or two input
+		if(ebiCommandBlock.firstInputName == "") {
+			
+		}
+		else if(ebiCommandBlock.secondInputName == "") {
+			
 		}
 		else {
-			// TODO: change, so that the output actually matches to the portTypes of pm4knime. Check portType and add import of the portObject.
-			portType = getPm4KnimePortType(outputType);
-		}
-		
-		try(BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)){
-			writer.write("package org.ryoo.knimeEbi.node;");
-			writer.newLine();
-			writer.newLine();
-			String portTypeImport = setPortTypeImport(portType);
-			writer.write(portTypeImport);
-			writer.newLine();
-			writer.newLine();
-			writer.write("public class " + factoryClassName + " extends EbiDefaultNodeFactory {");
-			writer.newLine();
-				writer.write("	public " + factoryClassName + "() {");
-				writer.newLine();
-				// TODO: 
-					writer.write("		super(\"" + commandName + "\", \"" + description + "\", \"" + outputType + "\", " + portType + ".TYPE);");
-					writer.newLine();
-				writer.write("	}");
-				writer.newLine();
-				writer.newLine();
-				String configure = setConfigure(portType, commandName);
-				writer.write(configure);
-				writer.newLine();
-				writer.newLine();
-				String execute = setExecute(portType, commandName, outputType);
-				writer.write(execute);
-				writer.newLine();
-			writer.write("}");
-		} catch (IOException e) {
-			System.out.println("Error creating " + factoryClassName + ".");
-			e.printStackTrace();
-		}
-		
-		try {
-			String fullyQualifiedFactoryClassName = "org.ryoo.knimeEbi.node." + factoryClassName;
 			
-			addNodeToPlugin(fullyQualifiedFactoryClassName);
-		} catch (IOException e) {
-			System.out.println("Error adding " + factoryClassName + " to plugin.xml.");
-			e.printStackTrace();
 		}
 	}
 	
@@ -440,12 +386,35 @@ public class NodeFactoryFileGenerator {
 		
 		String [] ebiCommandsMetadata = ebiItselfJavaOutput.split("// ==");
 		
-		// Iterate from 2nd element
-		for (int i = 1; i < ebiCommandsMetadata.length; i++) {
-			EbiCommandMetadata ebiCommandBlock = new EbiCommandMetadata(ebiCommandsMetadata[i].trim());
+		Path outputPathEbiCommandsTxt = Path.of(
+			"src",
+			"org",
+			"ryoo",
+			"knimeEbi",
+			"scaffolder",
+			"ebi-commands.txt"
+		);
+		
+		try(BufferedWriter writer = Files.newBufferedWriter(outputPathEbiCommandsTxt, StandardCharsets.UTF_8)){
+			// Iterate from 2nd element
+			for (int i = 1; i < ebiCommandsMetadata.length; i++) {
+				EbiCommandMetadata ebiCommandBlock = new EbiCommandMetadata(ebiCommandsMetadata[i].trim());
+				
+				// Print out all attributes of ebiCommandBlock to ebi-commands.txt
+				writer.write(ebiCommandBlock.toTextBlock());
+				writer.newLine();
+				writer.newLine();
+				
+				generateEbiNodeFactory(ebiCommandBlock);
+			}
 			
-			// generateEbiNodeFactories(...); <- Modify function
+			System.out.println("Generated all Ebi Node Factories.");
 		}
+		catch(IOException e) {
+			System.out.println("Error writing ebi-commands.txt.");
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public static void main(String[] args) {
@@ -471,7 +440,7 @@ public class NodeFactoryFileGenerator {
 		
 		try {
 			String xesContent = Files.readString(eventLogPath, StandardCharsets.UTF_8);
-			CallEbi.call_ebi("Ebi analyse completeness", ".frac", new String[] {xesContent});
+			CallEbi.call_ebi("Ebi discover directly-follows-graph", ".dfg", new String[] {xesContent, ""});
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
