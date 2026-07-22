@@ -55,7 +55,7 @@ public class _tmp {
 			
 			String commandName = "";
 			String alias = "";
-			String description = "";
+			String shortDescription = "";
 			String outputType = "";
 			
 			// Read each line until \ebifilehandlers
@@ -80,16 +80,16 @@ public class _tmp {
 						alias = commandName;
 					}
 					
-					description = "";
+					shortDescription = "";
 					
 					while(!(line = reader.readLine()).contains("\\\\") && (line != null) && !(line.contains("Output"))) {
-						description += line.trim();
+						shortDescription += line.trim();
 					}
 					// Delete the two \\
 					line = line.substring(0, line.length() - 2);
-					description += line.trim();
+					shortDescription += line.trim();
 					
-					description = cleanLatexDescription(description);
+					shortDescription = cleanLatexDescription(shortDescription);
 				}
 				
 				if(line.contains("\\noindent Output:")) {
@@ -104,12 +104,12 @@ public class _tmp {
 					writer.newLine();
 					writer.write(alias);
 					writer.newLine();
-					writer.write(description);
+					writer.write(shortDescription);
 					writer.newLine();
 					writer.write(outputType);
 					writer.newLine();
 					writer.newLine();
-					generateEbiNodeFactory(commandName, alias, description, outputType);
+					generateEbiNodeFactory(commandName, alias, shortDescription, outputType);
 				}
 			}
 			
@@ -128,7 +128,7 @@ public class _tmp {
 		
 	}
 	
-	private static void generateEbiNodeFactory(String commandName, String alias, String description, String outputType) {
+	private static void generateEbiNodeFactory(String commandName, String alias, String shortDescription, String outputType) {
 		// TODO: scaffold class that extends EbiDefaultNodeFactory and add factories to plugin.xml
 		// For Ebi convert log possibly create dynamic input ports and fixed ouput port XLog
 		String classNamePrefix = toClassNamePrefix(alias);
@@ -167,7 +167,7 @@ public class _tmp {
 				writer.write("	public " + factoryClassName + "() {");
 				writer.newLine();
 				// TODO: Change to EbiCommandMetadata attributes
-					writer.write("		super(\"" + commandName + "\", \"" + description + "\", \"" + outputType + "\", " + portType + ".TYPE);");
+					writer.write("		super(\"" + commandName + "\", \"" + shortDescription + "\", \"" + outputType + "\", " + portType + ".TYPE);");
 					writer.newLine();
 				writer.write("	}");
 				writer.newLine();
@@ -194,5 +194,74 @@ public class _tmp {
 			e.printStackTrace();
 		}
 	}
+	
+	private static String extractStringFromLine(String line, String prefix, String suffix) {
+		if (line.startsWith(prefix) && line.endsWith(suffix)) {
+		    String subString = line.substring(
+		        prefix.length(),
+		        line.length() - suffix.length()
+		    );
+
+		    return subString;
+		}
+		else {
+			System.out.println("Provided line does not start with provided prefix and suffix!");
+			return null;
+		}
+	}
+	
+	
+	 // Extract Content within {}
+	 
+	private static String getContent(final String line) {
+		String[] open = line.split("\\{");
+		return open[1].split("\\}")[0];
+	}
+	
+	private static String extractOutputType(final String line) {
+	    String prefix = "\\noindent Output:";
+
+	    if (!line.startsWith(prefix)) {
+	    	System.out.println("Provided line does not start with \\noindent Output:");
+	        return null;
+	    }
+
+	    int start = prefix.length();
+	    int end = line.indexOf(",", start);
+
+	    if (end < 0) {
+	    	System.out.println("There exists no comma in this line!");
+	        return null;
+	    }
+
+	    return line.substring(start, end).trim();
+	}
+	
+	private static String cleanLatexDescription(final String shortDescription) {
+	    return shortDescription
+	        .replaceAll("~?\\\\cite\\{[^}]*\\}", "")
+	        .replaceAll("~", " ")
+	        .replaceAll("\\s+", " ")
+	        .trim();
+	}
+	
+	private static String toClassNamePrefix(final String alias) {
+	    String[] words = alias.trim().split("[^A-Za-z0-9]+");
+
+	    StringBuilder result = new StringBuilder();
+
+	    for (String word : words) {
+	        if (word.isBlank()) {
+	            continue;
+	        }
+
+	        String lower = word.toLowerCase();
+	        result.append(Character.toUpperCase(lower.charAt(0)));
+	        result.append(lower.substring(1));
+	    }
+
+	    return result.toString();
+	}
+	
 	*/
 }

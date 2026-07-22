@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiItLogNodeFactory extends EbiDefaultNodeFactory {
 	public EbiItLogNodeFactory() {
-		super("Ebi itself logo", "\noindent Output: text, which can be written as text.", "text", BufferedDataTable.TYPE);
+		super("Ebi itself logo", "\noindent Output: text, which can be written as text.", "", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

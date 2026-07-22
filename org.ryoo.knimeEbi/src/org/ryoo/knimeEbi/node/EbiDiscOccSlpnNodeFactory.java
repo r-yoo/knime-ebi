@@ -13,7 +13,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiDiscOccSlpnNodeFactory extends EbiDefaultNodeFactory {
 	public EbiDiscOccSlpnNodeFactory() {
-		super("Ebi discover occurrence stochastic-labelled-Petri-net", "More information:", "stochastic labelled Petri net", PetriNetPortObject.TYPE);
+		super("Ebi discover occurrence stochastic-labelled-Petri-net", "More information:", "", "stochastic labelled Petri net", PetriNetPortObject.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

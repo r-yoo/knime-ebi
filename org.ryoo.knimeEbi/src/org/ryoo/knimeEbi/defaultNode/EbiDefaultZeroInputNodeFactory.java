@@ -8,13 +8,13 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.knime.node.DefaultModel;
 
 public class EbiDefaultZeroInputNodeFactory extends DefaultNodeFactory{
-	public EbiDefaultZeroInputNodeFactory(String commandName, String description, String outputName, PortType outputPortType) {
+	public EbiDefaultZeroInputNodeFactory(String commandName, String shortDescription, String fullDescription, String outputName, PortType outputPortType) {
 		super(
 			   DefaultNode.create()
 			   		.name(commandName)
 			   		.icon("default.png")
-			   		.shortDescription(description)
-			   		.fullDescription(description)
+			   		.shortDescription(shortDescription)
+			   		.fullDescription(fullDescription)
 			   		.sinceVersion(0, 0, 0) // change to real version
 			  		.ports(p -> p
 		                 .addOutputPort(outputName, outputName, outputPortType))
@@ -26,7 +26,7 @@ public class EbiDefaultZeroInputNodeFactory extends DefaultNodeFactory{
 	}
 	
 	public EbiDefaultZeroInputNodeFactory(EbiCommandMetadata metadata) {
-		this(metadata.commandName, metadata.description, metadata.outputName, metadata.outputPortType);
+		this(metadata.commandName, metadata.shortDescription, metadata.fullDescription, metadata.outputName, metadata.outputPortType);
 	}
 	
 	// Need to overwrite configure and execute -> static can not be overwritten, just define method with same signature

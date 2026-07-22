@@ -15,116 +15,6 @@ import org.processmining.ebi.CallEbi;
 
 public class NodeFactoryFileGenerator {
 	
-	// TODO: Delete if not needed anymore
-	public static void createEbiManual() {
-		String manual = CallEbi.call_ebi("Ebi itself manual", "text", new String[0]);
-		
-		Path outputPath = Path.of(
-			"src",
-			"org",
-			"ryoo",
-			"knimeEbi",
-			"scaffolder",
-			"ebi-manual.txt" // \ebicommands to \ebifilehandlers
-		);
-		
-		try {
-			Files.writeString(outputPath, manual, StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			System.out.println("Error writing manual to txt-file.");
-			e.printStackTrace();
-		}
-	}
-	
-	// TODO: Delete if not needed anymore
-	public static void printEbiItselfJava() {
-		String ebiCommands = CallEbi.call_ebi("Ebi itself java", "text", new String[0]);
-		
-		Path outputPath = Path.of(
-			"src",
-			"org",
-			"ryoo",
-			"knimeEbi",
-			"scaffolder",
-			"ebi-itself-java-output.txt"
-		);
-			
-		try {
-			Files.writeString(outputPath, ebiCommands, StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			System.out.println("Error writing output of \"Ebi itself java\" to txt-file.");
-			e.printStackTrace();
-		}
-	}
-	
-	private static String extractStringFromLine(String line, String prefix, String suffix) {
-		if (line.startsWith(prefix) && line.endsWith(suffix)) {
-		    String subString = line.substring(
-		        prefix.length(),
-		        line.length() - suffix.length()
-		    );
-
-		    return subString;
-		}
-		else {
-			System.out.println("Provided line does not start with provided prefix and suffix!");
-			return null;
-		}
-	}
-	
-	/*
-	 * Extract Content within {}
-	 */
-	private static String getContent(final String line) {
-		String[] open = line.split("\\{");
-		return open[1].split("\\}")[0];
-	}
-	
-	private static String extractOutputType(final String line) {
-	    String prefix = "\\noindent Output:";
-
-	    if (!line.startsWith(prefix)) {
-	    	System.out.println("Provided line does not start with \\noindent Output:");
-	        return null;
-	    }
-
-	    int start = prefix.length();
-	    int end = line.indexOf(",", start);
-
-	    if (end < 0) {
-	    	System.out.println("There exists no comma in this line!");
-	        return null;
-	    }
-
-	    return line.substring(start, end).trim();
-	}
-	
-	private static String cleanLatexDescription(final String description) {
-	    return description
-	        .replaceAll("~?\\\\cite\\{[^}]*\\}", "")
-	        .replaceAll("~", " ")
-	        .replaceAll("\\s+", " ")
-	        .trim();
-	}
-	
-	private static String toClassNamePrefix(final String alias) {
-	    String[] words = alias.trim().split("[^A-Za-z0-9]+");
-
-	    StringBuilder result = new StringBuilder();
-
-	    for (String word : words) {
-	        if (word.isBlank()) {
-	            continue;
-	        }
-
-	        String lower = word.toLowerCase();
-	        result.append(Character.toUpperCase(lower.charAt(0)));
-	        result.append(lower.substring(1));
-	    }
-
-	    return result.toString();
-	}
-	
 	private static String setPortTypeImport(final String portType) {
 		String portTypeImport = "";
 		
@@ -189,7 +79,7 @@ public class NodeFactoryFileGenerator {
 		return configureString;
 	}
 	
-	// TODO: change signature and add cases for TwoInput and ZeroInput
+	// TODO: change signature and add cases for TwoInput and ZeroInput -> += String
 	private static String setExecute(final String portType, final String commandName, final String outputType) {
 		String executeString = "";
 		// TODO: How many inputs from metadata and what kind of mandatory parameters -> Settings or Dialog?
@@ -347,93 +237,29 @@ public class NodeFactoryFileGenerator {
 		}
 	}
 	
-	private static boolean containsPluginDeclaration(final String metadataBlock) {
-	    if (metadataBlock == null) {
-	        return false;
-	    }
-
-	    int headerEnd = metadataBlock.indexOf("==");
-
-	    if (headerEnd < 0) {
-	        return false;
-	    }
-
-	    String contentAfterHeader = metadataBlock.substring(headerEnd + 2);
-	    return contentAfterHeader.contains("@Plugin(");
-	}
-	
 	/*
 	 * Extracts only Ebi commands that are available in Java.
-	 * Creates list of command names in ebi-commands.txt, which stores all metadata of each command.
 	 * Immediately scaffold from output of Ebi itself java
+	 * original text (iterate through split elements) -> metadata parameter call EbiCommandMetadata constructor
 	 */
-	// TODO: original text (iterate through split elements) -> metadata parameter call EbiCommandMetadata constructor
-	// Look up regex Java, regex online editor
-	public static void generateEbiNodes(){ // generateEbiNodes, so immediately scaffold -> change to only parsing from ebi-itself-java-output.txt
+	public static void generateEbiNodeFactories() {
+		System.out.println("Starting generating Ebi Nodes...");
+		
 		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", "text", new String[0]);
 		
 		String [] ebiCommandsMetadataBlocks = ebiItselfJavaOutput.split("// == command");
-		
-		Path outputPathEbiCommandsTxt = Path.of(
-			"src",
-			"org",
-			"ryoo",
-			"knimeEbi",
-			"scaffolder",
-			"ebi-commands.txt"
-		);
-		
-		try(BufferedWriter writer = Files.newBufferedWriter(outputPathEbiCommandsTxt, StandardCharsets.UTF_8)){
-			// Iterate from 2nd element
-			for (int i = 1; i < ebiCommandsMetadataBlocks.length; i++) {
-				String metadataBlock = ebiCommandsMetadataBlocks[i].trim();
-				
-				if(!containsPluginDeclaration(metadataBlock)) {
-					continue;
-				}
-				
-			    EbiCommandMetadata ebiCommandMetadata = new EbiCommandMetadata(metadataBlock);
-				
-				// Print out all attributes of ebiCommandBlock to ebi-commands.txt
-				writer.write(ebiCommandMetadata.toTextBlock());
-				writer.newLine();
-				writer.newLine();
-				
-				generateEbiNodeFactory(ebiCommandMetadata);
+
+		// Iterate from 2nd element
+		for (int i = 1; i < ebiCommandsMetadataBlocks.length; i++) {
+			String metadataBlock = ebiCommandsMetadataBlocks[i].trim();
+			
+			if(metadataBlock.trim().endsWith(" ==")) {
+				continue;
 			}
 			
-			System.out.println("Generated all Ebi Node Factories.");
-		}
-		catch(IOException e) {
-			System.out.println("Error writing ebi-commands.txt.");
-			e.printStackTrace();
+			generateEbiNodeFactory(new EbiCommandMetadata(metadataBlock));
 		}
 		
-	}
-	
-	public static void main(String[] args) {
-		// TODO: Create CI/CD Pipeline
-//		createEbiManual();
-//		printEbiItselfJava();
-//		
-		generateEbiNodes();
-		
-//		Path eventLogPath = Path.of( 
-//			"src",
-//			"org",
-//			"ryoo",
-//			"knimeEbi",
-//			"scaffolder",
-//			"event-log.xes"
-//		);
-//		
-//		try {
-//			String xesContent = Files.readString(eventLogPath, StandardCharsets.UTF_8);
-//			CallEbi.call_ebi("Ebi discover directly-follows-graph", ".dfg", new String[] {xesContent, "1"});
-//		 TODO: Research how to determine the parameters of an ebi function from ebi itself java
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		System.out.println("Generated all Ebi Nodes.");
 	}
 }

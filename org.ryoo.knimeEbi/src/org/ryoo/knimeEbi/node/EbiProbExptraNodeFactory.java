@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiProbExptraNodeFactory extends EbiDefaultNodeFactory {
 	public EbiProbExptraNodeFactory() {
-		super("Ebi probability log", "Compute the most likely explanation of a trace given the stochastic model.", "fraction", BufferedDataTable.TYPE);
+		super("Ebi probability log", "Compute the most likely explanation of a trace given the stochastic model.", "", "fraction", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

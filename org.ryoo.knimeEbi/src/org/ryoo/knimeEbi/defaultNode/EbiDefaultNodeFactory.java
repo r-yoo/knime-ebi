@@ -11,13 +11,13 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 
 //BufferedDataTable.TYPE is the standard table port type.
 public class EbiDefaultNodeFactory extends DefaultNodeFactory{
-	public EbiDefaultNodeFactory(String commandName, String description, String outputName, PortType outputPortType) {
+	public EbiDefaultNodeFactory(String commandName, String shortDescription, String fullDescription, String outputName, PortType outputPortType) {
 		super(
 			   DefaultNode.create()
 			   		.name(commandName)
 			   		.icon("default.png") // <- change to 
-			   		.shortDescription(description)
-			   		.fullDescription(description)
+			   		.shortDescription(shortDescription)
+			   		.fullDescription(fullDescription)
 			   		.sinceVersion(0, 0, 0) // change to real version
 			  		.ports(p -> p
                          .addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
@@ -30,7 +30,7 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 	}
 	
 	public EbiDefaultNodeFactory(EbiCommandMetadata metadata) {
-		this(metadata.commandName, metadata.description, metadata.outputName, metadata.outputPortType);
+		this(metadata.commandName, metadata.shortDescription, metadata.fullDescription, metadata.outputName, metadata.outputPortType);
 	}
 	
 	// Need to overwrite configure and execute -> static can not be overwritten, just define method with same signature

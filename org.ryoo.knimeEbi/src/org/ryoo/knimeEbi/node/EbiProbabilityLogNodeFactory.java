@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiProbabilityLogNodeFactory extends EbiDefaultNodeFactory {
 	public EbiProbabilityLogNodeFactory() {
-		super("Ebi probability log", "More information:", "fraction", BufferedDataTable.TYPE);
+		super("Ebi probability log", "More information:", "", "fraction", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

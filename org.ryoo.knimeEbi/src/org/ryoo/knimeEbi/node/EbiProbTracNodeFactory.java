@@ -13,7 +13,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiProbTracNodeFactory extends EbiDefaultNodeFactory {
 	public EbiProbTracNodeFactory() {
-		super("Ebi sample folds", "Compute the probability of a trace in a stochastic model.", "event log", XLogPortObject.TYPE);
+		super("Ebi sample folds", "Compute the probability of a trace in a stochastic model.", "", "event log", XLogPortObject.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

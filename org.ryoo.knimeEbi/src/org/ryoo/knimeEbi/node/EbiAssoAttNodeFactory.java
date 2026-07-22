@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiAssoAttNodeFactory extends EbiDefaultNodeFactory {
 	public EbiAssoAttNodeFactory() {
-		super("Ebi association trace-attribute", "More information:", "root", BufferedDataTable.TYPE);
+		super("Ebi association trace-attribute", "More information:", "", "root", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

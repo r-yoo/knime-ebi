@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiTstBtstNodeFactory extends EbiDefaultNodeFactory {
 	public EbiTstBtstNodeFactory() {
-		super("Ebi test bootstrap-test", "More information:", "text", BufferedDataTable.TYPE);
+		super("Ebi test bootstrap-test", "More information:", "", "text", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 

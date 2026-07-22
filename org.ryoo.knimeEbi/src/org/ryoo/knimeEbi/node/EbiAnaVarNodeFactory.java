@@ -16,7 +16,7 @@ import org.ryoo.knimeEbi.util.*;
 
 public class EbiAnaVarNodeFactory extends EbiDefaultNodeFactory {
 	public EbiAnaVarNodeFactory() {
-		super("Ebi analyse variety", "\noindent Output: fraction, which can be written as a fraction.", "fraction", BufferedDataTable.TYPE);
+		super("Ebi analyse variety", "\noindent Output: fraction, which can be written as a fraction.", "", "fraction", BufferedDataTable.TYPE);
 	}
 
 public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
