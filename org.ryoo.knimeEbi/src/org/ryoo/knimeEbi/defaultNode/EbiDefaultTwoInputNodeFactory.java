@@ -4,6 +4,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortType;
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNodeFactory;
+import org.knime.node.RequirePorts.PortsAdder;
 import org.knime.node.DefaultModel;
 
 import org.pm4knime.portobject.XLogPortObject;
@@ -19,10 +20,7 @@ public class EbiDefaultTwoInputNodeFactory extends DefaultNodeFactory{
 			   		.shortDescription(shortDescription)
 			   		.fullDescription(fullDescription)
 			   		.sinceVersion(0, 0, 0) // change to real version
-			  		.ports(p -> p
-			  				.addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
-			  				.addInputPort(secondInputName, secondInputName, secondInputPortType)
-			  				.addOutputPort(outputName, outputName, outputPortType))
+			  		.ports(p -> portAdderFunction(p))
 		            .model(m -> m
 		                    .withoutParameters()
 		                    .configure(EbiDefaultTwoInputNodeFactory::configure)
@@ -32,6 +30,12 @@ public class EbiDefaultTwoInputNodeFactory extends DefaultNodeFactory{
 	
 	public EbiDefaultTwoInputNodeFactory(EbiCommandMetadata metadata) {
 		this(metadata.commandName, metadata.shortDescription, metadata.fullDescription, metadata.secondInputName, metadata.secondInputPortType, metadata.outputName, metadata.outputPortType);
+	}
+	
+	private static PortsAdder portAdderFunction(PortsAdder p) {
+		p = p.addInputPort("Event Log", "an event log", XLogPortObject.TYPE);
+		p = p.addInputPort(secondInputName, secondInputName, secondInputPortType);
+		p = p.addOutputPort(outputName, outputName, outputPortType);
 	}
 	
 	// Need to overwrite configure and execute -> static can not be overwritten, just define method with same signature

@@ -223,18 +223,18 @@ public class NodeFactoryFileGenerator {
 	        + xml.substring(pluginEnd);
 	}
 	
-	private static void generateEbiNodeFactory(EbiCommandMetadata ebiCommandBlock) {
+	private static void generateEbiNodeFactory(EbiCommandMetadata metadata) {
 		// TODO: Implement logic
 		// Check zero input, one input or two input
-		if(ebiCommandBlock.firstInputName == "") {
-			return;
-		}
-		else if(ebiCommandBlock.secondInputName == "") {
-			
-		}
-		else {
-			
-		}
+//		if(ebiCommandBlock.firstInputName == "") {
+//			return;
+//		}
+//		else if(ebiCommandBlock.secondInputName == "") {
+//			
+//		}
+//		else {
+//			
+//		}
 	}
 	
 	/*
@@ -245,7 +245,7 @@ public class NodeFactoryFileGenerator {
 	public static void generateEbiNodeFactories() {
 		System.out.println("Starting generating Ebi Nodes...");
 		
-		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", "text", new String[0]);
+		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", ".txt", new String[0]);
 		
 		String [] ebiCommandsMetadataBlocks = ebiItselfJavaOutput.split("// == command");
 
@@ -257,7 +257,10 @@ public class NodeFactoryFileGenerator {
 				continue;
 			}
 			
-			generateEbiNodeFactory(new EbiCommandMetadata(metadataBlock));
+			EbiCommandMetadata ebiCommandMetadata = new EbiCommandMetadata(metadataBlock);
+			System.out.println(ebiCommandMetadata.toString());
+			
+			generateEbiNodeFactory(ebiCommandMetadata);
 		}
 		
 		System.out.println("Generated all Ebi Nodes.");
