@@ -76,7 +76,7 @@ public class NodeFactoryFileGenerator {
 		StringBuilder builder = new StringBuilder();
 		
 		/*
-		 * TODO: Build String here
+		 * TODO: Build String here, one function for creating ebiNodeFactoryFile
 		 * */
 		
 		String ebiNodeFactoryString = builder.toString();
