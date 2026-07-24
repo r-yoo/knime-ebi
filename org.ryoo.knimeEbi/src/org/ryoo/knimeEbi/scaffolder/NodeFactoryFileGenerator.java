@@ -38,11 +38,23 @@ public class NodeFactoryFileGenerator {
 		    }
 			
 			// For checking metadata extraction
-			EbiCommandMetadata ebiCommandMetadata = new EbiCommandMetadata(metadataBlock);
-			System.out.println(ebiCommandMetadata.toString());
+			EbiCommandMetadata metadata = new EbiCommandMetadata(metadataBlock);
+			System.out.println(metadata.toString());
 			System.out.println("");
 			
-			generateEbiNodeFactory(ebiCommandMetadata);
+			String factoryClassName = toClassNamePrefix(metadata.commandName) + "NodeFactory";
+			
+			generateEbiNodeFactory(metadata, factoryClassName);
+			
+			// Adding Node Factory to plugin.xml
+			try {
+				String fullyQualifiedFactoryClassName = "org.ryoo.knimeEbi.node." + factoryClassName;
+				
+				addNodeToPlugin(fullyQualifiedFactoryClassName);
+			} catch (IOException e) {
+				System.out.println("Error adding " + factoryClassName + " to plugin.xml");
+				e.printStackTrace();
+			}
 		}
 		
 		System.out.println("Generated all Ebi Nodes.");
@@ -52,18 +64,33 @@ public class NodeFactoryFileGenerator {
 	    return metadataBlock != null && PLUGIN_DECLARATION_PATTERN.matcher(metadataBlock).find();
 	}
 	
-	private static void generateEbiNodeFactory(EbiCommandMetadata metadata) {
+	private static void generateEbiNodeFactory(EbiCommandMetadata metadata, String factoryClassName) {
 		// TODO: Implement logic
 		// Check zero input, one input or two input
-//		if(ebiCommandBlock.firstInputName == "") {
-//			return;
-//		}
-//		else if(ebiCommandBlock.secondInputName == "") {
-//			
-//		}
-//		else {
-//			
-//		}
+		if(metadata.inputs == null || metadata.inputs.size() == 0) {
+			System.out.println(metadata.commandName + " is a itself type command...");
+			System.out.println("Node Factory will not be created...");
+			return;
+		}
+		
+		StringBuilder builder = new StringBuilder();
+		
+		/*
+		 * TODO: Build String here
+		 * */
+		
+		String ebiNodeFactoryString = builder.toString();
+		
+		try {
+			Files.writeString(
+					Path.of("src", "org", "ryoo", "knimeEbi", "node", factoryClassName + ".java"),
+				    ebiNodeFactoryString,
+				    StandardCharsets.UTF_8
+			);
+		} catch (IOException e) {
+			System.out.println("Error writing " + factoryClassName + ".java");
+			e.printStackTrace();
+		}
 	}
 	
 	private static String setPortTypeImport(final String portType) {
@@ -168,6 +195,24 @@ public class NodeFactoryFileGenerator {
 		return executeString;
 	}
 	
+	private static String toClassNamePrefix(final String commandName) {
+	    String[] words = commandName.trim().split("[^A-Za-z0-9]+");
+
+	    StringBuilder result = new StringBuilder();
+
+	    for (String word : words) {
+	        if (word.isBlank()) {
+	            continue;
+	        }
+
+	        String lower = word.toLowerCase();
+	        result.append(Character.toUpperCase(lower.charAt(0)));
+	        result.append(lower.substring(1));
+	    }
+
+	    return result.toString();
+	}
+	
 	private static void addNodeToPlugin(final String factoryClassName) throws IOException {
 
 	    Path pluginXml = Path.of("plugin.xml");
@@ -227,7 +272,7 @@ public class NodeFactoryFileGenerator {
 
 	    String nodeXml =
 	        "      <node" + newline
-	            + "            category-path=\"/\"" + newline
+	            + "            category-path=\"/\"" + newline // TODO: Specify category
 	            + "            factory-class=\""
 	            + factoryClassName
 	            + "\"/>"
