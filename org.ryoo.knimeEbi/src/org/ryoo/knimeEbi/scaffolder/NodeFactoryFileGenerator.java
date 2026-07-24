@@ -1,7 +1,5 @@
 package org.ryoo.knimeEbi.scaffolder;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,6 +12,59 @@ import org.pm4knime.util.*;
 import org.processmining.ebi.CallEbi;
 
 public class NodeFactoryFileGenerator {
+	private static final Pattern PLUGIN_DECLARATION_PATTERN = Pattern.compile("(?m)^\\s*@Plugin\\s*\\(");
+	
+	/*
+	 * Extracts only Ebi commands that are available in Java.
+	 * Immediately scaffold from output of Ebi itself java
+	 * original text (iterate through split elements) -> metadata parameter call EbiCommandMetadata constructor
+	 */
+	public static void generateEbiNodeFactories() {
+		System.out.println("Starting generating Ebi Nodes...");
+		
+		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", ".txt", new String[0]);
+		
+		String [] ebiCommandsMetadataBlocks = ebiItselfJavaOutput.split("// == command");
+
+		// Iterate from 2nd element
+		for (int i = 1; i < ebiCommandsMetadataBlocks.length; i++) {
+			String metadataBlock = ebiCommandsMetadataBlocks[i].trim();
+			
+			if (!containsPluginDeclaration(metadataBlock)) {
+		        String commandName = metadataBlock.split("==", 2)[0].trim();
+		        System.out.println("Skipping command without plugin declaration: " + commandName);
+		        System.out.println("");
+		        continue;
+		    }
+			
+			// For checking metadata extraction
+			EbiCommandMetadata ebiCommandMetadata = new EbiCommandMetadata(metadataBlock);
+			System.out.println(ebiCommandMetadata.toString());
+			System.out.println("");
+			
+			generateEbiNodeFactory(ebiCommandMetadata);
+		}
+		
+		System.out.println("Generated all Ebi Nodes.");
+	}
+	
+	private static boolean containsPluginDeclaration(final String metadataBlock) {
+	    return metadataBlock != null && PLUGIN_DECLARATION_PATTERN.matcher(metadataBlock).find();
+	}
+	
+	private static void generateEbiNodeFactory(EbiCommandMetadata metadata) {
+		// TODO: Implement logic
+		// Check zero input, one input or two input
+//		if(ebiCommandBlock.firstInputName == "") {
+//			return;
+//		}
+//		else if(ebiCommandBlock.secondInputName == "") {
+//			
+//		}
+//		else {
+//			
+//		}
+	}
 	
 	private static String setPortTypeImport(final String portType) {
 		String portTypeImport = "";
@@ -221,48 +272,5 @@ public class NodeFactoryFileGenerator {
 	    return xml.substring(0, pluginEnd)
 	        + extensionXml
 	        + xml.substring(pluginEnd);
-	}
-	
-	private static void generateEbiNodeFactory(EbiCommandMetadata metadata) {
-		// TODO: Implement logic
-		// Check zero input, one input or two input
-//		if(ebiCommandBlock.firstInputName == "") {
-//			return;
-//		}
-//		else if(ebiCommandBlock.secondInputName == "") {
-//			
-//		}
-//		else {
-//			
-//		}
-	}
-	
-	/*
-	 * Extracts only Ebi commands that are available in Java.
-	 * Immediately scaffold from output of Ebi itself java
-	 * original text (iterate through split elements) -> metadata parameter call EbiCommandMetadata constructor
-	 */
-	public static void generateEbiNodeFactories() {
-		System.out.println("Starting generating Ebi Nodes...");
-		
-		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", ".txt", new String[0]);
-		
-		String [] ebiCommandsMetadataBlocks = ebiItselfJavaOutput.split("// == command");
-
-		// Iterate from 2nd element
-		for (int i = 1; i < ebiCommandsMetadataBlocks.length; i++) {
-			String metadataBlock = ebiCommandsMetadataBlocks[i].trim();
-			
-			if(metadataBlock.trim().endsWith(" ==")) {
-				continue;
-			}
-			
-			EbiCommandMetadata ebiCommandMetadata = new EbiCommandMetadata(metadataBlock);
-			System.out.println(ebiCommandMetadata.toString());
-			
-			generateEbiNodeFactory(ebiCommandMetadata);
-		}
-		
-		System.out.println("Generated all Ebi Nodes.");
 	}
 }

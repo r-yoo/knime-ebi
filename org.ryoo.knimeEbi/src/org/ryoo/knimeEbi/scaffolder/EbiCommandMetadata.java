@@ -2,12 +2,13 @@ package org.ryoo.knimeEbi.scaffolder;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class EbiCommandMetadata {
 	public String commandName; 
 	public String shortDescription;
 	public String fullDescription;
-	public ArrayList<EbiCommandMetadataParameter> inputs;
+	public ArrayList<EbiCommandMetadataParameter> inputs = new ArrayList<>();
 	public EbiCommandMetadataParameter output;
 	
 	/* Expected Input:
