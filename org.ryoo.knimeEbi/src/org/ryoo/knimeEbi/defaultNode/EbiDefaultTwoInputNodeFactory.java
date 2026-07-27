@@ -35,16 +35,6 @@ public class EbiDefaultTwoInputNodeFactory extends DefaultNodeFactory{
 		this(metadata.commandName, metadata.shortDescription, metadata.fullDescription, metadata.secondInputName, metadata.secondInputPortType, metadata.outputName, metadata.outputPortType);
 	}
 	
-	private static PortsAdder portAdderFunction(PortsAdder p, EbiCommandMetadata metadata) {
-		// First, add outputPort checking output attribute
-		// With for-loop over inputs array
-		// p = p.addInputPort(name, name, portType + ".TYPE");
-		/*
-		p = p.addInputPort("Event Log", "an event log", XLogPortObject.TYPE);
-		p = p.addInputPort(secondInputName, secondInputName, secondInputPortType);
-		p = p.addOutputPort(outputName, outputName, outputPortType);*/
-	}
-	
 	// Need to overwrite configure and execute -> static can not be overwritten, just define method with same signature
 	public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output)
 		throws InvalidSettingsException{}

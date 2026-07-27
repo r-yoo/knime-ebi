@@ -46,6 +46,20 @@ public class EbiCommandMetadata {
 	    	}
 	    }
 	}
+
+	// Explicit constructor
+	public EbiCommandMetadata(final String commandName,
+	        final String shortDescription,
+	        final String fullDescription,
+	        final ArrayList<EbiCommandMetadataParameter> inputs,
+	        final EbiCommandMetadataParameter output) {
+
+	    this.commandName = commandName;
+	    this.shortDescription = shortDescription;
+	    this.fullDescription = fullDescription;
+	    this.inputs.addAll(inputs);
+	    this.output = output;
+	}
 	
 	@Override
 	public String toString() {

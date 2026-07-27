@@ -4,12 +4,19 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortType;
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNodeFactory;
+import org.knime.node.RequirePorts.PortsAdder;
 import org.knime.node.DefaultModel;
 
+import org.pm4knime.portobject.DFMPortObject; // Delete if not needed
+import org.pm4knime.portobject.DfgMsdPortObject; // Delete if not needed
+import org.pm4knime.portobject.PetriNetPortObject;
+import org.pm4knime.portobject.ProcessTreePortObject;
 import org.pm4knime.portobject.XLogPortObject;
+
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 
 //BufferedDataTable.TYPE is the standard table port type.
+// TODO: Change parameter to EbiCommandMetadata and add RequiredModelParametersFunction
 public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 	public EbiDefaultNodeFactory(String commandName, String shortDescription, String fullDescription, String outputName, PortType outputPortType) {
 		super(
@@ -18,7 +25,7 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 			   		.icon("default.png") // <- change to 
 			   		.shortDescription(shortDescription)
 			   		.fullDescription(fullDescription)
-			   		.sinceVersion(0, 0, 0) // change to real version
+			   		.sinceVersion(0, 0, 0) // TODO: change to real version
 			  		.ports(p -> p
                          .addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
 		                 .addOutputPort(outputName, outputName, outputPortType))
@@ -28,9 +35,20 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 		                    .execute(EbiDefaultNodeFactory::execute))
 		            .nodeType(NodeType.Manipulator));
 	}
-	
+	/*
 	public EbiDefaultNodeFactory(EbiCommandMetadata metadata) {
 		this(metadata.commandName, metadata.shortDescription, metadata.fullDescription, metadata.outputName, metadata.outputPortType);
+	}*/
+	
+	private static PortsAdder portAdderFunction(PortsAdder p, EbiCommandMetadata metadata) {
+		// First, add outputPort checking output attribute
+		// With for-loop over inputs array
+		// p = p.addInputPort(name, name, portType + ".TYPE");
+		/*
+		p = p.addInputPort("Event Log", "an event log", XLogPortObject.TYPE);
+		p = p.addInputPort(secondInputName, secondInputName, secondInputPortType);
+		p = p.addOutputPort(outputName, outputName, outputPortType);*/
+		return p;
 	}
 	
 	// Need to overwrite configure and execute -> static can not be overwritten, just define method with same signature

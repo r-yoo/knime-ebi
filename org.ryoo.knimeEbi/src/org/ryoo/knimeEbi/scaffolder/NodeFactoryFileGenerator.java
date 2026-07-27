@@ -62,7 +62,7 @@ public class NodeFactoryFileGenerator {
 	    return metadataBlock != null && PLUGIN_DECLARATION_PATTERN.matcher(metadataBlock).find();
 	}
 	
-	private static void generateEbiNodeFactory(EbiCommandMetadata metadata, String factoryClassName) {
+	private static void generateEbiNodeFactory(final EbiCommandMetadata metadata, final String factoryClassName) {
 		// TODO: Implement logic
 		// Check zero input, one input or two input
 		if(metadata.inputs == null || metadata.inputs.size() == 0) {
@@ -70,19 +70,13 @@ public class NodeFactoryFileGenerator {
 			System.out.println("Node Factory will not be created...");
 			return;
 		}
-		// Just += String
-		StringBuilder builder = new StringBuilder();
 		
-		/*
-		 * TODO: Build String here, one function for creating ebiNodeFactoryFile
-		 * */
-		// Just += String
-		String ebiNodeFactoryString = builder.toString();
+		String ebiNodeFactorySource = createEbiNodeFactorySource(metadata, factoryClassName);
 		
 		try {
 			Files.writeString(
 					Path.of("src", "org", "ryoo", "knimeEbi", "node", factoryClassName + ".java"),
-				    ebiNodeFactoryString,
+				    ebiNodeFactorySource,
 				    StandardCharsets.UTF_8
 			);
 		} catch (IOException e) {
@@ -91,11 +85,37 @@ public class NodeFactoryFileGenerator {
 		}
 	}
 	
-	private static String setPortTypeImport(final String portType) {
+	private static String createEbiNodeFactorySource(final EbiCommandMetadata metadata, final String factoryClassName) {
+		String newLine = System.lineSeparator();
+		StringBuilder source = new StringBuilder();
+		
+		source.append("package org.ryoo.knimeEbi.node;")
+			  .append(newLine)
+			  .append(newLine);
+		
+		source.append(createImportSectionSource(metadata));
+		
+		source.append("public class " + factoryClassName + " extends EbiDefaultNodeFactory {").append(newLine);
+		
+		source.append(createEbiCommandMetadataConstantSource(metadata));
+		
+		source.append(createConstructorSource());
+		
+		source.append(createConfigureMethodSource(metadata));
+		
+		source.append(createExecuteMethodSource(metadata));
+		
+		source.append("}").append(newLine);
+		
+		return source.toString();
+	}
+	
+	private static String createImportSectionSource(final EbiCommandMetadata metadata) {
+		String newLine = System.lineSeparator();
 		String portTypeImport = "";
 		// String x = "..."; String +=
 		
-		if(portType == "BufferedDataTable") {
+		if("BufferedDataTable".equals("portType")) {
 			portTypeImport = "import org.knime.core.data.DataTableSpec;\r\n"
 							+ "import org.knime.core.data.def.StringCell;\r\n"
 							+ "import org.knime.core.data.def.DefaultRow;\r\n"
@@ -115,8 +135,8 @@ public class NodeFactoryFileGenerator {
 							+ "import org.knime.node.DefaultModel;\r\n"
 							+ "\r\n"
 							+ "import org.pm4knime.portobject.XLogPortObjectSpec;\r\n" // TODO: Add case for portType = XLog
-							+ "import org.pm4knime.portobject." + portType + ";\r\n"
-							+ "import org.pm4knime.portobject." + portType + "Spec;\r\n"
+							+ "import org.pm4knime.portobject." + metadata + ";\r\n"
+							+ "import org.pm4knime.portobject." + metadata + "Spec;\r\n"
 							+ "\r\n"
 							+ "import org.processmining.ebi.CallEbi;\r\n"
 							+ "\r\n"
@@ -126,11 +146,21 @@ public class NodeFactoryFileGenerator {
 		return portTypeImport;
 	}
 	
-	// TODO: change signature and cases for two inputs and zero inputs
-	private static String setConfigure(final String portType, final String commandName) {
+	private static String createEbiCommandMetadataConstantSource(final EbiCommandMetadata metadata) {
+		// Use constant name COMMAND_METADATA
+		return "";
+	}
+	
+	private static String createConstructorSource() {
+		// Use constant name COMMAND_METADATA
+		return "";
+	}
+	
+	private static String createConfigureMethodSource(final EbiCommandMetadata metadata) {
+		String newLine = System.lineSeparator();
 		String configureString = "";
 		
-		if(portType == "BufferedDataTable") {
+		if("BufferedDataTable".equals(portType)) {
 			configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
 						+ "    	throws InvalidSettingsException {\r\n"
 						+ "    	\r\n"
@@ -157,7 +187,8 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	// TODO: change signature and add cases for TwoInput and ZeroInput -> += String
-	private static String setExecute(final String portType, final String commandName, final String outputType) {
+	private static String createExecuteMethodSource(final EbiCommandMetadata metadata) {
+		String newLine = System.lineSeparator();
 		String executeString = "";
 		// TODO: How many inputs from metadata and what kind of mandatory parameters -> Settings or Dialog?
 		if(portType == "BufferedDataTable") {
