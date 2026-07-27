@@ -33,14 +33,12 @@ public class NodeFactoryFileGenerator {
 			if (!containsPluginDeclaration(metadataBlock)) {
 		        String commandName = metadataBlock.split("==", 2)[0].trim();
 		        System.out.println("Skipping command without plugin declaration: " + commandName);
-		        System.out.println("");
 		        continue;
 		    }
 			
 			// For checking metadata extraction
 			EbiCommandMetadata metadata = new EbiCommandMetadata(metadataBlock);
 			System.out.println(metadata.toString());
-			System.out.println("");
 			
 			String factoryClassName = toClassNamePrefix(metadata.commandName) + "NodeFactory";
 			
@@ -72,13 +70,13 @@ public class NodeFactoryFileGenerator {
 			System.out.println("Node Factory will not be created...");
 			return;
 		}
-		
+		// Just += String
 		StringBuilder builder = new StringBuilder();
 		
 		/*
 		 * TODO: Build String here, one function for creating ebiNodeFactoryFile
 		 * */
-		
+		// Just += String
 		String ebiNodeFactoryString = builder.toString();
 		
 		try {
@@ -95,6 +93,7 @@ public class NodeFactoryFileGenerator {
 	
 	private static String setPortTypeImport(final String portType) {
 		String portTypeImport = "";
+		// String x = "..."; String +=
 		
 		if(portType == "BufferedDataTable") {
 			portTypeImport = "import org.knime.core.data.DataTableSpec;\r\n"

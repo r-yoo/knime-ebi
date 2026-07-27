@@ -1,5 +1,7 @@
 package org.ryoo.knimeEbi.defaultNode;
 
+import java.util.ArrayList;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortType;
 import org.knime.node.DefaultNode;
@@ -9,10 +11,11 @@ import org.knime.node.DefaultModel;
 
 import org.pm4knime.portobject.XLogPortObject;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
+import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 
 //BufferedDataTable.TYPE is the standard table port type.
 public class EbiDefaultTwoInputNodeFactory extends DefaultNodeFactory{
-	public EbiDefaultTwoInputNodeFactory(String commandName, String shortDescription, String fullDescription, String secondInputName, PortType secondInputPortType, String outputName, PortType outputPortType) {
+	public EbiDefaultTwoInputNodeFactory(EbiCommandMetadata metadata) {
 		super(
 			   DefaultNode.create()
 			   		.name(commandName)
@@ -20,7 +23,7 @@ public class EbiDefaultTwoInputNodeFactory extends DefaultNodeFactory{
 			   		.shortDescription(shortDescription)
 			   		.fullDescription(fullDescription)
 			   		.sinceVersion(0, 0, 0) // change to real version
-			  		.ports(p -> portAdderFunction(p))
+			  		.ports(p -> portAdderFunction(p, metadata))
 		            .model(m -> m
 		                    .withoutParameters()
 		                    .configure(EbiDefaultTwoInputNodeFactory::configure)
@@ -28,14 +31,18 @@ public class EbiDefaultTwoInputNodeFactory extends DefaultNodeFactory{
 		            .nodeType(NodeType.Manipulator));
 	}
 	
-	public EbiDefaultTwoInputNodeFactory(EbiCommandMetadata metadata) {
+	public EbiDefaultTwoInputNodeFactory(ArrayList<EbiCommandMetadataParameter> inputs, EbiCommandMetadataParameter output) {
 		this(metadata.commandName, metadata.shortDescription, metadata.fullDescription, metadata.secondInputName, metadata.secondInputPortType, metadata.outputName, metadata.outputPortType);
 	}
 	
-	private static PortsAdder portAdderFunction(PortsAdder p) {
+	private static PortsAdder portAdderFunction(PortsAdder p, EbiCommandMetadata metadata) {
+		// First, add outputPort checking output attribute
+		// With for-loop over inputs array
+		// p = p.addInputPort(name, name, portType + ".TYPE");
+		/*
 		p = p.addInputPort("Event Log", "an event log", XLogPortObject.TYPE);
 		p = p.addInputPort(secondInputName, secondInputName, secondInputPortType);
-		p = p.addOutputPort(outputName, outputName, outputPortType);
+		p = p.addOutputPort(outputName, outputName, outputPortType);*/
 	}
 	
 	// Need to overwrite configure and execute -> static can not be overwritten, just define method with same signature
