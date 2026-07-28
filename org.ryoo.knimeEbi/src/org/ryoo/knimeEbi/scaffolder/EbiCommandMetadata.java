@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class EbiCommandMetadata {
-	public String commandName; 
-	public String shortDescription;
-	public String fullDescription;
-	public ArrayList<EbiCommandMetadataParameter> inputs = new ArrayList<>();
-	public EbiCommandMetadataParameter output;
+	public final String commandName; 
+	public final String shortDescription;
+	public final String fullDescription;
+	public final ArrayList<EbiCommandMetadataParameter> inputs = new ArrayList<>();
+	public final EbiCommandMetadataParameter output;
 	
 	
 	// Original text for each Ebi command (Metadata block) -> Extract metadata of each command and assign to attributes of this class

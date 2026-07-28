@@ -1,12 +1,12 @@
 package org.ryoo.knimeEbi.scaffolder;
 
 public class EbiCommandMetadataParameter {
-	public String type;
-	public String portType;
-	public String typeDescription;
-	public boolean isPort;
+	public final String type;
+	public final String portType;
+	public final String typeDescription;
+	public final boolean isPort;
 	
-	public EbiCommandMetadataParameter(String type, String portType, String typeDescription, boolean isPort) {
+	public EbiCommandMetadataParameter(final String type, final String portType, final String typeDescription, final boolean isPort) {
 		this.type = type;
 		this.isPort = isPort;
 		

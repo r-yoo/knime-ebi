@@ -100,7 +100,9 @@ public class NodeFactoryFileGenerator {
 		
 		source.append(createEbiCommandMetadataConstantSource(metadata));
 		
-		source.append(createConstructorSource());
+		source.append(createConstructorSource(factoryClassName));
+		
+		source.append(createAddPortsMethodSource());
 		
 		source.append(createConfigureMethodSource(metadata));
 		
@@ -117,7 +119,9 @@ public class NodeFactoryFileGenerator {
 									+ "import java.util.List;" + newLine
 									+ newLine
 									+ "import org.knime.core.node.InvalidSettingsException;" + newLine
-									+ "import org.knime.node.DefaultModel;" + newLine;
+									+ "import org.knime.node.DefaultModel;" + newLine
+									+ "import org.knime.node.DefaultModel.RequireModelParameters;" + newLine
+									+newLine;
 		importSectionSource += "import org.processmining.ebi.CallEbi;" + newLine
 							+ "import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;" + newLine
 							+ "import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;" + newLine
@@ -253,9 +257,39 @@ public class NodeFactoryFileGenerator {
 				.replace("\t", "\\t");
 	}
 	
-	private static String createConstructorSource() {
-		// Use constant name COMMAND_METADATA
-		return "";
+	private static String createConstructorSource(final String factoryClassName) {
+		String newLine = System.lineSeparator();
+		
+		String constructorSource = "\tpublic "+ factoryClassName + "() {" + newLine
+								+ "\t\tsuper(COMMAND_METADATA, " + factoryClassName + "::addPorts);" + newLine
+								+ "\t}" + newLine
+								+ newLine;
+		
+		return constructorSource;
+	}
+	
+	private static String createAddPortsMethodSource() {
+		// String newLine = System.lineSeparator();
+		return "private static PortsAdder addPorts(PortsAdder ports) {\r\n"
+				+ "    for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {\r\n"
+				+ "        if (input.isPort) {\r\n"
+				+ "            ports = ports.addInputPort(input.type, input.type, resolvePortType(input.portType));\r\n"
+				+ "        }\r\n"
+				+ "    }\r\n"
+				+ "\r\n"
+				+ "    EbiCommandMetadataParameter output = COMMAND_METADATA.output;\r\n"
+				+ "    return ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));\r\n"
+				+ "}";
+	}
+	
+	private static String createConfigureModelMethodSource() {
+		// TODO: Implement logic and change
+		return "private static DefaultModel configureModel(final RequireModelParameters model) {\r\n"
+				+ "    return model\r\n"
+				+ "        .withoutParameters()\r\n"
+				+ "        .configure(EbiDefaultNodeFactory::configure)\r\n" // change to factoryClassName
+				+ "        .execute(EbiDefaultNodeFactory::execute);\r\n" // change to factoryClassName
+				+ "}";
 	}
 	
 	private static String createConfigureMethodSource(final EbiCommandMetadata metadata) {
