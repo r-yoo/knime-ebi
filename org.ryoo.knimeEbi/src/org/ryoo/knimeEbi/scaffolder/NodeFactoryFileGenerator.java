@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,53 +113,144 @@ public class NodeFactoryFileGenerator {
 	
 	private static String createImportSectionSource(final EbiCommandMetadata metadata) {
 		String newLine = System.lineSeparator();
-		String importSectionSource = "import org.knime.core.node.InvalidSettingsException;" + newLine + "import org.knime.node.DefaultModel;" 
-									+ newLine;
-		importSectionSource += "import org.processmining.ebi.CallEbi;"
-							+ newLine
-							+ "import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;"
-							+ newLine
-							+ "import org.ryoo.knimeEbi.util.*;"
-							+ newLine 
+		String importSectionSource = "import java.util.ArrayList;" + newLine
+									+ "import java.util.List;" + newLine
+									+ newLine
+									+ "import org.knime.core.node.InvalidSettingsException;" + newLine
+									+ "import org.knime.node.DefaultModel;" + newLine;
+		importSectionSource += "import org.processmining.ebi.CallEbi;" + newLine
+							+ "import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;" + newLine
+							+ "import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;" + newLine
+							+ "import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;" + newLine
+							+ "import org.ryoo.knimeEbi.util.*;" + newLine 
 							+ newLine;
 		
-		ArrayList<String> addedPortTypes = new ArrayList<>();
+		Set<String> addedPortTypes = new HashSet<>();
+		
 		for(EbiCommandMetadataParameter parameter : metadata.inputs) {
-			if(!parameter.isPort) {
+			if(!parameter.isPort || addedPortTypes.contains(parameter.portType)) {
 				continue;
 			}
 			
-			if(addedPortTypes.contains(parameter.portType)) {
-				continue;
-			}
-			
-			if("BufferedDataTable".equals(parameter.portType)) {
-				importSectionSource += "import org.knime.core.data.DataTableSpec;" + newLine
-								+ "import org.knime.core.data.def.StringCell;" + newLine
-								+ "import org.knime.core.data.def.DefaultRow;" + newLine
-								+ "import org.knime.core.node.BufferedDataContainer;" + newLine
-								+ "import org.knime.core.node.BufferedDataTable;" + newLine
-								+ newLine;
-				
-				addedPortTypes.add(parameter.portType);
-			}
-			else if("XLogPortObject".equals(parameter.portType)) {
-				importSectionSource += "import org.pm4knime.portobject.XLogPortObjectSpec;" + newLine
-								+ newLine;
-				
-				addedPortTypes.add(parameter.portType);
-			}
-			else if("PetriNetPortObject".equals(parameter.portType)) {
-				importSectionSource += "";
-			}
+			importSectionSource += createPortTypeImportDeclarations(parameter.portType);
+			addedPortTypes.add(parameter.portType);
+		}
+		
+		if (metadata.output.isPort && !addedPortTypes.contains(metadata.output.portType)) {
+		    importSectionSource += createPortTypeImportDeclarations(metadata.output.portType);
+		    addedPortTypes.add(metadata.output.portType);
 		}
 		
 		return importSectionSource;
 	}
 	
+	private static String createPortTypeImportDeclarations(final String portType) {
+	    String newLine = System.lineSeparator();
+
+	    return switch (portType) {
+	        case "BufferedDataTable" ->
+	            "import org.knime.core.data.DataTableSpec;" + newLine
+	            + "import org.knime.core.data.def.StringCell;" + newLine
+	            + "import org.knime.core.data.def.DefaultRow;" + newLine
+	            + "import org.knime.core.node.BufferedDataContainer;" + newLine
+	            + "import org.knime.core.node.BufferedDataTable;" + newLine
+	            + newLine;
+
+	        case "XLogPortObject" ->
+	            "import org.pm4knime.portobject.XLogPortObjectSpec;" + newLine
+	            + newLine;
+
+	        case "PetriNetPortObject" ->
+	            "import org.pm4knime.portobject.PetriNetPortObjectSpec;" + newLine
+	            + "import org.pm4knime.util.PetriNetUtil;" + newLine
+	            + newLine;
+
+	        case "ProcessTreePortObject" ->
+	            "import org.pm4knime.portobject.ProcessTreePortObjectSpec;" + newLine
+	            + newLine;
+
+	        case "DfgMsdPortObject" -> // Possibly remove those if I don't find a function like stringToPetrNet
+	            "import org.pm4knime.portobject.DfgMsdPortObjectSpec;" + newLine
+	            + newLine;
+
+	        case "DFMPortObject" -> // Possibly remove those if I don't find a function like stringToPetrNet
+	            "import org.pm4knime.portobject.DFMPortObjectSpec;" + newLine
+	            + newLine;
+
+	        default ->
+	            throw new IllegalArgumentException(portType + " is unsupported!");
+	    };
+	}
+	
 	private static String createEbiCommandMetadataConstantSource(final EbiCommandMetadata metadata) {
-		// Use constant name COMMAND_METADATA
-		return "";
+		if (metadata == null) {
+			throw new IllegalArgumentException("Ebi command metadata must not be null.");
+		}
+		
+		if (metadata.output == null) {
+			throw new IllegalArgumentException("Ebi command metadata must have an output.");
+		}
+		
+		String newLine = System.lineSeparator();
+		StringBuilder source = new StringBuilder();
+		
+		source.append("\tprivate static final EbiCommandMetadata COMMAND_METADATA =").append(newLine);
+		source.append("\t\tnew EbiCommandMetadata(").append(newLine);
+		source.append("\t\t\t\"").append(escapeJavaString(metadata.commandName)).append("\",").append(newLine);
+		source.append("\t\t\t\"").append(escapeJavaString(metadata.shortDescription)).append("\",").append(newLine);
+		source.append("\t\t\t\"").append(escapeJavaString(metadata.fullDescription)).append("\",").append(newLine);
+		source.append("\t\t\tnew ArrayList<>(").append(newLine);
+		source.append("\t\t\t\tList.of(").append(newLine);
+		
+		for (int i = 0; i < metadata.inputs.size(); i++) {
+			EbiCommandMetadataParameter input = metadata.inputs.get(i);
+			source.append(createEbiCommandMetadataParameterSource(input, "\t\t\t\t\t"));
+			
+			if (i < metadata.inputs.size() - 1) {
+				source.append(",");
+			}
+			
+			source.append(newLine);
+		}
+		
+		source.append("\t\t\t\t)").append(newLine);
+		source.append("\t\t\t),").append(newLine);
+		source.append(createEbiCommandMetadataParameterSource(metadata.output, "\t\t\t"));
+		source.append(newLine);
+		source.append("\t\t);").append(newLine).append(newLine);
+		
+		return source.toString();
+	}
+	
+	private static String createEbiCommandMetadataParameterSource(final EbiCommandMetadataParameter parameter, final String indentation) {
+		
+		if (parameter == null) {
+			throw new IllegalArgumentException("Ebi command metadata parameter must not be null.");
+		}
+		
+		String newLine = System.lineSeparator();
+		StringBuilder source = new StringBuilder();
+		
+		source.append(indentation).append("new EbiCommandMetadataParameter(").append(newLine);
+		source.append(indentation).append("\t\"").append(escapeJavaString(parameter.type)).append("\",").append(newLine);
+		source.append(indentation).append("\t\"").append(escapeJavaString(parameter.portType)).append("\",").append(newLine);
+		source.append(indentation).append("\t\"").append(escapeJavaString(parameter.typeDescription)).append("\",").append(newLine);
+		source.append(indentation).append("\t").append(parameter.isPort).append(newLine);
+		source.append(indentation).append(")");
+		
+		return source.toString();
+	}
+	
+	private static String escapeJavaString(final String value) {
+		if (value == null) {
+			return "";
+		}
+		
+		return value.replace("\\", "\\\\")
+				.replace("\"", "\\\"")
+				.replace("\r", "\\r")
+				.replace("\n", "\\n")
+				.replace("\t", "\\t");
 	}
 	
 	private static String createConstructorSource() {

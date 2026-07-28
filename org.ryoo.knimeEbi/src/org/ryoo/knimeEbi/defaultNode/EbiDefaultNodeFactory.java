@@ -29,6 +29,7 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 			  		.ports(p -> p
                          .addInputPort("Event Log", "an event log", XLogPortObject.TYPE)
 		                 .addOutputPort(outputName, outputName, outputPortType))
+			  		// .ports(p -> portAdderFunction(p, metadata))
 		            .model(m -> m
 		                    .withoutParameters()
 		                    .configure(EbiDefaultNodeFactory::configure)
