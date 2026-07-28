@@ -40,6 +40,7 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory{
 		this(metadata.commandName, metadata.shortDescription, metadata.fullDescription, metadata.outputName, metadata.outputPortType);
 	}*/
 	
+	// TODO: Or just define the method with the same signature in the scaffolded file
 	private static PortsAdder portAdderFunction(PortsAdder p, EbiCommandMetadata metadata) {
 		// First, add outputPort checking output attribute
 		// With for-loop over inputs array

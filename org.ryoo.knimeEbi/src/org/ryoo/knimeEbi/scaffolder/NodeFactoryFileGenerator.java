@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -89,9 +90,7 @@ public class NodeFactoryFileGenerator {
 		String newLine = System.lineSeparator();
 		StringBuilder source = new StringBuilder();
 		
-		source.append("package org.ryoo.knimeEbi.node;")
-			  .append(newLine)
-			  .append(newLine);
+		source.append("package org.ryoo.knimeEbi.node;").append(newLine).append(newLine);
 		
 		source.append(createImportSectionSource(metadata));
 		
@@ -112,38 +111,48 @@ public class NodeFactoryFileGenerator {
 	
 	private static String createImportSectionSource(final EbiCommandMetadata metadata) {
 		String newLine = System.lineSeparator();
-		String portTypeImport = "";
-		// String x = "..."; String +=
+		String importSectionSource = "import org.knime.core.node.InvalidSettingsException;" + newLine + "import org.knime.node.DefaultModel;" 
+									+ newLine;
+		importSectionSource += "import org.processmining.ebi.CallEbi;"
+							+ newLine
+							+ "import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;"
+							+ newLine
+							+ "import org.ryoo.knimeEbi.util.*;"
+							+ newLine 
+							+ newLine;
 		
-		if("BufferedDataTable".equals("portType")) {
-			portTypeImport = "import org.knime.core.data.DataTableSpec;\r\n"
-							+ "import org.knime.core.data.def.StringCell;\r\n"
-							+ "import org.knime.core.data.def.DefaultRow;\r\n"
-							+ "import org.knime.core.node.BufferedDataContainer;\r\n"
-							+ "import org.knime.core.node.BufferedDataTable;\r\n"
-							+ "import org.knime.core.node.InvalidSettingsException;\r\n"
-							+ "import org.knime.node.DefaultModel;\r\n"
-							+ "\r\n"
-							+ "import org.pm4knime.portobject.XLogPortObjectSpec;\r\n"
-							+ "\r\n"
-							+ "import org.processmining.ebi.CallEbi;\r\n"
-							+ "\r\n"
-							+ "import org.ryoo.knimeEbi.util.*;";
-		}
-		else {
-			portTypeImport = "import org.knime.core.node.InvalidSettingsException;\r\n"
-							+ "import org.knime.node.DefaultModel;\r\n"
-							+ "\r\n"
-							+ "import org.pm4knime.portobject.XLogPortObjectSpec;\r\n" // TODO: Add case for portType = XLog
-							+ "import org.pm4knime.portobject." + metadata + ";\r\n"
-							+ "import org.pm4knime.portobject." + metadata + "Spec;\r\n"
-							+ "\r\n"
-							+ "import org.processmining.ebi.CallEbi;\r\n"
-							+ "\r\n"
-							+ "import org.ryoo.knimeEbi.util.*;";
+		ArrayList<String> addedPortTypes = new ArrayList<>();
+		for(EbiCommandMetadataParameter parameter : metadata.inputs) {
+			if(!parameter.isPort) {
+				continue;
+			}
+			
+			if(addedPortTypes.contains(parameter.portType)) {
+				continue;
+			}
+			
+			if("BufferedDataTable".equals(parameter.portType)) {
+				importSectionSource += "import org.knime.core.data.DataTableSpec;" + newLine
+								+ "import org.knime.core.data.def.StringCell;" + newLine
+								+ "import org.knime.core.data.def.DefaultRow;" + newLine
+								+ "import org.knime.core.node.BufferedDataContainer;" + newLine
+								+ "import org.knime.core.node.BufferedDataTable;" + newLine
+								+ newLine;
+				
+				addedPortTypes.add(parameter.portType);
+			}
+			else if("XLogPortObject".equals(parameter.portType)) {
+				importSectionSource += "import org.pm4knime.portobject.XLogPortObjectSpec;" + newLine
+								+ newLine;
+				
+				addedPortTypes.add(parameter.portType);
+			}
+			else if("PetriNetPortObject".equals(parameter.portType)) {
+				importSectionSource += "";
+			}
 		}
 		
-		return portTypeImport;
+		return importSectionSource;
 	}
 	
 	private static String createEbiCommandMetadataConstantSource(final EbiCommandMetadata metadata) {
