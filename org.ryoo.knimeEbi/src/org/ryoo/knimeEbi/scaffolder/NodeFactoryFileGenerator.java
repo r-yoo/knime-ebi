@@ -95,7 +95,178 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 	}
 	
 	private static void generateEbiNodeSettings(final EbiCommandMetadata metadata, final String settingsClassName) {
-		// TODO: Implement here
+		if(metadata.inputs == null || metadata.inputs.size() == 0) {
+			System.out.println(metadata.commandName + " is a itself type command...");
+			System.out.println("Node Settings will not be created...");
+			return;
+		}
+
+		String ebiNodeSettingsSource = createEbiNodeSettingsSource(metadata, settingsClassName);
+
+		try {
+			Files.writeString(
+					Path.of("src", "org", "ryoo", "knimeEbi", "node", settingsClassName + ".java"),
+				    ebiNodeSettingsSource,
+				    StandardCharsets.UTF_8
+			);
+		} catch (IOException e) {
+			System.out.println("Error writing " + settingsClassName + ".java");
+			e.printStackTrace();
+		}
+	}
+
+	private static String createEbiNodeSettingsSource(final EbiCommandMetadata metadata, final String settingsClassName) {
+		validateSettingsMetadata(metadata, settingsClassName);
+
+		String newLine = System.lineSeparator();
+		StringBuilder source = new StringBuilder();
+
+		source.append("package org.ryoo.knimeEbi.node;").append(newLine).append(newLine);
+		source.append("import org.knime.node.parameters.NodeParameters;").append(newLine);
+		source.append("import org.knime.node.parameters.Widget;").append(newLine);
+
+		if (hasNumericSettingsInput(metadata)) {
+			source.append("import org.knime.node.parameters.widget.number.NumberInputWidget;").append(newLine);
+		}
+
+		source.append(newLine);
+		source.append("public final class ").append(settingsClassName).append(" implements NodeParameters {")
+			.append(newLine).append(newLine);
+
+		int settingsIndex = 0;
+		for (int metadataIndex = 0; metadataIndex < metadata.inputs.size(); metadataIndex++) {
+			EbiCommandMetadataParameter parameter = metadata.inputs.get(metadataIndex);
+
+			if (parameter.isPort) {
+				continue;
+			}
+
+			String title = createSettingsWidgetTitle(parameter, settingsIndex);
+			String description = createSettingsWidgetDescription(metadata, parameter, settingsIndex);
+
+			source.append("    @Widget(title = \"").append(escapeJavaString(title))
+				.append("\", description = \"").append(escapeJavaString(description)).append("\")")
+				.append(newLine);
+
+			if (settingUsesNumberInputWidget(parameter.type)) {
+				source.append("    @NumberInputWidget").append(newLine);
+			}
+
+			source.append("    ").append(createSettingsFieldDeclaration(parameter, metadataIndex))
+				.append(newLine).append(newLine);
+			settingsIndex++;
+		}
+
+		source.append("}").append(newLine);
+		return source.toString();
+	}
+
+	private static void validateSettingsMetadata(final EbiCommandMetadata metadata, final String settingsClassName) {
+		if (metadata == null) {
+			throw new IllegalArgumentException("Metadata must not be null.");
+		}
+
+		if (metadata.inputs == null) {
+			throw new IllegalArgumentException("Metadata inputs must not be null.");
+		}
+
+		if (settingsClassName == null || settingsClassName.isBlank()) {
+			throw new IllegalArgumentException("Settings class name must not be empty.");
+		}
+
+		if (!isJavaIdentifier(settingsClassName)) {
+			throw new IllegalArgumentException("Invalid settings class name: " + settingsClassName);
+		}
+
+		if (metadata.hasNoPrimitiveInputs()) {
+			throw new IllegalArgumentException("Cannot create a settings class without settings inputs.");
+		}
+
+		for (EbiCommandMetadataParameter parameter : metadata.inputs) {
+			if (parameter == null) {
+				throw new IllegalArgumentException("Metadata inputs must not contain null.");
+			}
+
+			if (!parameter.isPort) {
+				validateSupportedSettingsType(parameter.type);
+			}
+		}
+	}
+
+	private static boolean isJavaIdentifier(final String value) {
+		if (value.isEmpty() || !Character.isJavaIdentifierStart(value.charAt(0))) {
+			return false;
+		}
+
+		for (int i = 1; i < value.length(); i++) {
+			if (!Character.isJavaIdentifierPart(value.charAt(i))) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private static void validateSupportedSettingsType(final String type) {
+		if (type == null || type.isBlank()) {
+			throw new IllegalArgumentException("Ebi settings type must not be empty.");
+		}
+
+		switch (type) {
+			case "Integer", "String", "Byte", "Short", "Long", "Double", "Character", "Boolean", "BigFraction":
+				return;
+			default:
+				throw new IllegalArgumentException("Unsupported Ebi settings type: " + type);
+		}
+	}
+
+	private static boolean hasNumericSettingsInput(final EbiCommandMetadata metadata) {
+		for (EbiCommandMetadataParameter parameter : metadata.inputs) {
+			if (!parameter.isPort && settingUsesNumberInputWidget(parameter.type)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static boolean settingUsesNumberInputWidget(final String type) {
+		return "Integer".equals(type)
+			|| "Byte".equals(type)
+			|| "Short".equals(type)
+			|| "Double".equals(type);
+	}
+
+	private static String createSettingsWidgetTitle(final EbiCommandMetadataParameter parameter,
+			final int settingsIndex) {
+		if (parameter.typeDescription != null && !parameter.typeDescription.isBlank()) {
+			return parameter.typeDescription.trim().replaceFirst("[.!?]+$", "");
+		}
+
+		return parameter.type + " input " + (settingsIndex + 1);
+	}
+
+	private static String createSettingsWidgetDescription(final EbiCommandMetadata metadata,
+			final EbiCommandMetadataParameter parameter, final int settingsIndex) {
+		if (parameter.typeDescription != null && !parameter.typeDescription.isBlank()) {
+			return parameter.typeDescription.trim();
+		}
+
+		return "The " + parameter.type + " value for input " + (settingsIndex + 1)
+			+ " of " + metadata.commandName + ".";
+	}
+
+	private static String createSettingsFieldDeclaration(final EbiCommandMetadataParameter parameter,
+			final int metadataIndex) {
+		String fieldName = createSettingsFieldName(metadataIndex);
+
+		return switch (parameter.type) {
+			case "Integer", "Byte", "Short" -> "int " + fieldName + " = 0;";
+			case "Double" -> "double " + fieldName + " = 0.0;";
+			case "Boolean" -> "boolean " + fieldName + " = false;";
+			case "String", "Long", "Character", "BigFraction" -> "String " + fieldName + " = \"\";";
+			default -> throw new IllegalArgumentException("Unsupported Ebi settings type: " + parameter.type);
+		};
 	}
 	
 	private static String createEbiNodeFactorySource(final EbiCommandMetadata metadata, final String factoryClassName, final String settingsClassName) {
@@ -118,7 +289,7 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 		
 		source.append(createConfigureMethodSource(metadata));
 		
-		source.append(createExecuteMethodSource(metadata));
+		source.append(createExecuteMethodSource(metadata, settingsClassName));
 		
 		source.append("}").append(newLine);
 		
@@ -127,7 +298,10 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 	
 	private static String createImportSectionSource(final EbiCommandMetadata metadata) {
 		String newLine = System.lineSeparator();
-		String importSectionSource = "import java.util.ArrayList;" + newLine
+		String importSectionSource = "import java.io.ByteArrayInputStream;" + newLine
+									+ "import java.io.ByteArrayOutputStream;" + newLine
+									+ "import java.nio.charset.StandardCharsets;" + newLine
+									+ "import java.util.ArrayList;" + newLine
 									+ "import java.util.List;" + newLine
 									+ newLine
 									+ "import org.knime.core.node.InvalidSettingsException;" + newLine
@@ -174,16 +348,20 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 	            + newLine;
 
 	        case "XLogPortObject" ->
-	            "import org.pm4knime.portobject.XLogPortObjectSpec;" + newLine
+	            "import org.pm4knime.portobject.XLogPortObject;" + newLine
+	            + "import org.pm4knime.portobject.XLogPortObjectSpec;" + newLine
+	            + "import org.pm4knime.util.XLogUtil;" + newLine
 	            + newLine;
 
 	        case "PetriNetPortObject" ->
-	            "import org.pm4knime.portobject.PetriNetPortObjectSpec;" + newLine
+	            "import org.pm4knime.portobject.PetriNetPortObject;" + newLine
+	            + "import org.pm4knime.portobject.PetriNetPortObjectSpec;" + newLine
 	            + "import org.pm4knime.util.PetriNetUtil;" + newLine
 	            + newLine;
 
 	        case "ProcessTreePortObject" ->
-	            "import org.pm4knime.portobject.ProcessTreePortObjectSpec;" + newLine
+	            "import org.pm4knime.portobject.ProcessTreePortObject;" + newLine
+	            + "import org.pm4knime.portobject.ProcessTreePortObjectSpec;" + newLine
 	            + newLine;
 
 	        case "DfgMsdPortObject" -> // Possibly remove those if I don't find a function like stringToPetrNet
@@ -402,49 +580,158 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 	 * 		...
 	 * }
 	 * */
-	private static String createExecuteMethodSource(final EbiCommandMetadata metadata) {
-		String executeString = "    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}\r\n";
-		
-		// TODO: Retrieve settings parameters in execute
-		for(EbiCommandMetadataParameter input : metadata.inputs) {
-			if(!input.isPort) {
-				continue;
-			}
-			
-			// TODO: still not right, change this metadata.output is also not considered yet
-//			if("BufferedDataTable".equals(input.portType)) {
-//				executeString = "public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {\r\n"
-//							+ "	    try {\r\n"
-//							+ "            final Object logPortObject = input.getInPortObject(0);\r\n"
-//							+ "\r\n"
-//							+ "	        final DataTableSpec spec = TableUtil.createOutputSpec(\"Ebi Completeness\", \"completeness\", StringCell.TYPE);\r\n"
-//							+ "	        final BufferedDataContainer container =\r\n"
-//							+ "	            input.getExecutionContext().createDataContainer(spec);\r\n"
-//							+ "	        \r\n"
-//							+ "            final String xesContent = XESUtil.writeLogToXesString(logPortObject);\r\n"
-//							+ "\r\n"
-//							+ "            final String result = CallEbi.call_ebi(\r\n"
-//							+ "            		\"" + metadata.commandName + "\",\r\n"
-//							+ "            		\"" + getFileExtension(metadata.output.type) + "\",\r\n"
-//							+ "            		new String[] {xesContent});\r\n"
-//							+ "\r\n"
-//							+ "	        container.addRowToTable(new DefaultRow(\r\n"
-//							+ "	            \"Row0\",\r\n"
-//							+ "	            new StringCell(result)));\r\n"
-//							+ "\r\n"
-//							+ "	        container.close();\r\n"
-//							+ "	        output.setOutData(0, container.getTable());\r\n"
-//							+ "	    } catch (Exception ex) {\r\n"
-//							+ "	        throw new RuntimeException(ex);\r\n"
-//							+ "	    }\r\n"
-//							+ "	}";
-//			}
-//			else {
-//				executeString = "";
-//			}
+	private static String createExecuteMethodSource(final EbiCommandMetadata metadata, final String settingsClassName) {
+		validateExecuteMetadata(metadata, settingsClassName);
+
+		StringBuilder source = new StringBuilder();
+		source.append("    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {\r\n");
+		source.append("        try {\r\n");
+		source.append("            final String[] ebiInputs = new String[").append(metadata.inputs.size()).append("];\r\n");
+
+		if (!metadata.hasNoPrimitiveInputs()) {
+			source.append("            final ").append(settingsClassName).append(" settings = input.getParameters();\r\n");
 		}
-		
-		return executeString;
+
+		if (!metadata.inputs.isEmpty()) {
+			source.append("\r\n");
+		}
+
+		int portIndex = 0;
+		for (int metadataIndex = 0; metadataIndex < metadata.inputs.size(); metadataIndex++) {
+			EbiCommandMetadataParameter parameter = metadata.inputs.get(metadataIndex);
+
+			if (parameter.isPort) {
+				source.append(createPortInputConversionSource(parameter, metadataIndex, portIndex));
+				portIndex++;
+			}
+			else {
+				source.append("            ebiInputs[").append(metadataIndex).append("] = String.valueOf(settings.")
+					.append(createSettingsFieldName(metadataIndex)).append(");\r\n");
+			}
+		}
+
+		source.append("\r\n");
+		source.append("            final String result = CallEbi.call_ebi(\r\n");
+		source.append("                \"").append(escapeJavaString(metadata.commandName)).append("\",\r\n");
+		source.append("                \"").append(escapeJavaString(getFileExtension(metadata.output.type))).append("\",\r\n");
+		source.append("                ebiInputs);\r\n");
+		source.append("\r\n");
+		source.append(createOutputConversionSource(metadata));
+		source.append("        } catch (Exception ex) {\r\n");
+		source.append("            throw new RuntimeException(\"Ebi command failed: ")
+			.append(escapeJavaString(metadata.commandName)).append("\", ex);\r\n");
+		source.append("        }\r\n");
+		source.append("    }\r\n");
+
+		return source.toString();
+	}
+
+	private static void validateExecuteMetadata(final EbiCommandMetadata metadata, final String settingsClassName) {
+		validatePortMetadata(metadata);
+
+		if (!metadata.hasNoPrimitiveInputs() && (settingsClassName == null || settingsClassName.isBlank())) {
+			throw new IllegalArgumentException("A settings class name is required for primitive Ebi inputs.");
+		}
+
+		for (EbiCommandMetadataParameter parameter : metadata.inputs) {
+			if (parameter.isPort) {
+				validateSupportedInputPortType(parameter.portType);
+			}
+		}
+
+		validateSupportedOutputPortType(metadata.output.portType);
+		getFileExtension(metadata.output.type);
+	}
+
+	private static void validateSupportedInputPortType(final String portType) {
+		switch (portType) {
+			case "XLogPortObject", "PetriNetPortObject", "ProcessTreePortObject":
+				return;
+			default:
+				throw new IllegalArgumentException(
+					"Cannot generate input conversion for unsupported port type: " + portType
+				);
+		}
+	}
+
+	private static void validateSupportedOutputPortType(final String portType) {
+		switch (portType) {
+			case "XLogPortObject", "PetriNetPortObject", "ProcessTreePortObject", "BufferedDataTable":
+				return;
+			default:
+				throw new IllegalArgumentException(
+					"Cannot generate output conversion for unsupported port type: " + portType
+				);
+		}
+	}
+
+	private static String createPortInputConversionSource(final EbiCommandMetadataParameter parameter,
+			final int metadataIndex, final int portIndex) {
+		return switch (parameter.portType) {
+			case "XLogPortObject" ->
+				"            ebiInputs[" + metadataIndex + "] = XESUtil.writeLogToXesString(input.getInPortObject("
+					+ portIndex + "));\r\n";
+
+			case "PetriNetPortObject" ->
+				"            final PetriNetPortObject inputPort" + portIndex
+					+ " = input.getInPortObject(" + portIndex + ");\r\n"
+					+ "            final ByteArrayOutputStream inputBuffer" + portIndex
+					+ " = new ByteArrayOutputStream();\r\n"
+					+ "            PetriNetUtil.exportToStream(inputPort" + portIndex
+					+ ".getANet(), inputBuffer" + portIndex + ");\r\n"
+					+ "            ebiInputs[" + metadataIndex + "] = inputBuffer" + portIndex
+					+ ".toString(StandardCharsets.UTF_8);\r\n";
+
+			case "ProcessTreePortObject" ->
+				"            final ProcessTreePortObject inputPort" + portIndex
+					+ " = input.getInPortObject(" + portIndex + ");\r\n"
+					+ "            ebiInputs[" + metadataIndex + "] = inputPort" + portIndex + ".toText();\r\n";
+
+			default ->
+				throw new IllegalArgumentException(
+					"Cannot generate input conversion for unsupported port type: " + parameter.portType
+				);
+		};
+	}
+
+	private static String createOutputConversionSource(final EbiCommandMetadata metadata) {
+		return switch (metadata.output.portType) {
+			case "BufferedDataTable" ->
+				"            final DataTableSpec spec = TableUtil.createOutputSpec(\r\n"
+					+ "                COMMAND_METADATA.commandName,\r\n"
+					+ "                COMMAND_METADATA.output.type,\r\n"
+					+ "                StringCell.TYPE);\r\n"
+					+ "            final BufferedDataContainer container = input.getExecutionContext().createDataContainer(spec);\r\n"
+					+ "            container.addRowToTable(new DefaultRow(\"Row0\", new StringCell(result)));\r\n"
+					+ "            container.close();\r\n"
+					+ "            output.setOutData(0, container.getTable());\r\n";
+
+			case "XLogPortObject" ->
+				"            final XLogPortObject resultPort = new XLogPortObject(\r\n"
+					+ "                XLogUtil.loadLog(new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8))));\r\n"
+					+ "            output.setOutData(0, resultPort);\r\n";
+
+			case "PetriNetPortObject" ->
+				"            final PetriNetPortObject resultPort = new PetriNetPortObject(\r\n"
+					+ "                PetriNetUtil.stringToPetriNet(result));\r\n"
+					+ "            output.setOutData(0, resultPort);\r\n";
+
+			case "ProcessTreePortObject" ->
+				"            final ProcessTreePortObject resultPort = new ProcessTreePortObject();\r\n"
+					+ "            resultPort.loadFromDefault(\r\n"
+					+ "                new ProcessTreePortObjectSpec(),\r\n"
+					+ "                new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8)));\r\n"
+					+ "            output.setOutData(0, resultPort);\r\n";
+
+			default ->
+				throw new IllegalArgumentException(
+					"Cannot generate output conversion for unsupported port type: " + metadata.output.portType
+				);
+		};
+	}
+
+	private static String createSettingsFieldName(final int metadataIndex) {
+		return "m_input" + metadataIndex;
 	}
 	
 	private static String getFileExtension(final String outputType) {
