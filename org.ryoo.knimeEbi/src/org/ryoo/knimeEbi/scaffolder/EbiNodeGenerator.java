@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 import org.processmining.ebi.CallEbi;
 
-public class EbiNodeGenerator { // TODO: Refactor name because it will generate NodeFactories and NodeSettings (NodeFileGenerator)
+public class EbiNodeGenerator {
 	private static final Pattern PLUGIN_DECLARATION_PATTERN = Pattern.compile("(?m)^\\s*@Plugin\\s*\\(");
 	
 	/*
@@ -19,7 +19,7 @@ public class EbiNodeGenerator { // TODO: Refactor name because it will generate 
 	 * Immediately scaffold from output of Ebi itself java
 	 * original text (iterate through split elements) -> metadata parameter call EbiCommandMetadata constructor
 	 */
-	public static void generateEbiNodes() { // TODO: Refactor name because it will generate NodeFactories and NodeSettings (generateEbiNodes)
+	public static void generateEbiNodes() {
 		System.out.println("Starting generating Ebi Nodes...");
 		
 		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", ".txt", new String[0]);
@@ -500,8 +500,6 @@ public class EbiNodeGenerator { // TODO: Refactor name because it will generate 
 	}
 	
 	private static String createConfigureModelMethodSource(final EbiCommandMetadata metadata, final String factoryClassName, final String settingsClassName) {
-		// TODO: Implement logic and change with cases withParameters and without
-		// Check in metadata.inputs: are there primitive Ebi parameters -> if else
 		if(metadata.hasNoPrimitiveInputs()) {
 			return "    private static DefaultModel configureModel(final RequireModelParameters model) {\r\n"
 					+ "        return model\r\n"
@@ -740,6 +738,10 @@ public class EbiNodeGenerator { // TODO: Refactor name because it will generate 
 	        case "fraction"    -> ".frac";
 	        case "processtree" -> ".ptml";
 	        case "string"      -> ".txt";
+	        case "boolean"     -> ".bool";
+	        case "containsroot_html" -> ".croot";
+	        case "logdiv"      -> ".logdiv";
+	        case "rootlogdiv"  -> ".rldiv";
 	        default -> throw new IllegalArgumentException(
 	            "Unsupported output type: " + outputType
 	        );

@@ -1,5 +1,8 @@
 package org.ryoo.knimeEbi.node;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +17,9 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.util.XLogUtil;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
@@ -84,5 +89,29 @@ public class EbiAssociationAllTraceAttributesNodeFactory extends EbiDefaultNodeF
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi association all-trace-attributes", "Ebi association all-trace-attributes", StringCell.TYPE));
     }
 
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+        try {
+            final String[] ebiInputs = new String[2];
+            final EbiAssociationAllTraceAttributesNodeSettings settings = input.getParameters();
+
+            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            ebiInputs[1] = String.valueOf(settings.m_input1);
+
+            final String result = CallEbi.call_ebi(
+                "Ebi association all-trace-attributes",
+                ".txt",
+                ebiInputs);
+
+            final DataTableSpec spec = TableUtil.createOutputSpec(
+                COMMAND_METADATA.commandName,
+                COMMAND_METADATA.output.type,
+                StringCell.TYPE);
+            final BufferedDataContainer container = input.getExecutionContext().createDataContainer(spec);
+            container.addRowToTable(new DefaultRow("Row0", new StringCell(result)));
+            container.close();
+            output.setOutData(0, container.getTable());
+        } catch (Exception ex) {
+            throw new RuntimeException("Ebi command failed: Ebi association all-trace-attributes", ex);
+        }
+    }
 }

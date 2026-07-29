@@ -1,5 +1,8 @@
 package org.ryoo.knimeEbi.node;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +17,7 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
 
@@ -32,7 +36,7 @@ public class EbiVisualiseTextNodeFactory extends EbiDefaultNodeFactory {
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
+						"AcceptingPetriNet",
 						"PetriNetPortObject",
 						"",
 						true
@@ -79,5 +83,30 @@ public class EbiVisualiseTextNodeFactory extends EbiDefaultNodeFactory {
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi visualise text", "Ebi visualise text", StringCell.TYPE));
     }
 
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+        try {
+            final String[] ebiInputs = new String[1];
+
+            final PetriNetPortObject inputPort0 = input.getInPortObject(0);
+            final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
+            ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
+
+            final String result = CallEbi.call_ebi(
+                "Ebi visualise text",
+                ".txt",
+                ebiInputs);
+
+            final DataTableSpec spec = TableUtil.createOutputSpec(
+                COMMAND_METADATA.commandName,
+                COMMAND_METADATA.output.type,
+                StringCell.TYPE);
+            final BufferedDataContainer container = input.getExecutionContext().createDataContainer(spec);
+            container.addRowToTable(new DefaultRow("Row0", new StringCell(result)));
+            container.close();
+            output.setOutData(0, container.getTable());
+        } catch (Exception ex) {
+            throw new RuntimeException("Ebi command failed: Ebi visualise text", ex);
+        }
+    }
 }

@@ -1,5 +1,8 @@
 package org.ryoo.knimeEbi.node;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +17,13 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.util.XLogUtil;
+
+import org.pm4knime.portobject.PetriNetPortObject;
+import org.pm4knime.portobject.PetriNetPortObjectSpec;
+import org.pm4knime.util.PetriNetUtil;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
@@ -37,8 +46,8 @@ public class EbiConformanceJensenShannonNodeFactory extends EbiDefaultNodeFactor
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"XLog",
-						"XLogPortObject",
+						"StochasticLabelledPetriNetSimpleWeights",
+						"PetriNetPortObject",
 						"",
 						true
 					)
@@ -81,12 +90,38 @@ public class EbiConformanceJensenShannonNodeFactory extends EbiDefaultNodeFactor
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
+        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance jensen-shannon", "Ebi conformance jensen-shannon", StringCell.TYPE));
     }
 
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+        try {
+            final String[] ebiInputs = new String[2];
+
+            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
+            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
+            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
+
+            final String result = CallEbi.call_ebi(
+                "Ebi conformance jensen-shannon",
+                ".rldiv",
+                ebiInputs);
+
+            final DataTableSpec spec = TableUtil.createOutputSpec(
+                COMMAND_METADATA.commandName,
+                COMMAND_METADATA.output.type,
+                StringCell.TYPE);
+            final BufferedDataContainer container = input.getExecutionContext().createDataContainer(spec);
+            container.addRowToTable(new DefaultRow("Row0", new StringCell(result)));
+            container.close();
+            output.setOutData(0, container.getTable());
+        } catch (Exception ex) {
+            throw new RuntimeException("Ebi command failed: Ebi conformance jensen-shannon", ex);
+        }
+    }
 }

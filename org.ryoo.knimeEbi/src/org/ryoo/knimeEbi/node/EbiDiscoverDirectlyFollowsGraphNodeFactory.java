@@ -1,5 +1,8 @@
 package org.ryoo.knimeEbi.node;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +17,11 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.util.XLogUtil;
 
+import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
 
@@ -81,5 +87,24 @@ public class EbiDiscoverDirectlyFollowsGraphNodeFactory extends EbiDefaultNodeFa
         output.setOutSpec(0, new PetriNetPortObjectSpec());
     }
 
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+        try {
+            final String[] ebiInputs = new String[2];
+            final EbiDiscoverDirectlyFollowsGraphNodeSettings settings = input.getParameters();
+
+            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            ebiInputs[1] = String.valueOf(settings.m_input1);
+
+            final String result = CallEbi.call_ebi(
+                "Ebi discover directly-follows-graph",
+                ".pnml",
+                ebiInputs);
+
+            final PetriNetPortObject resultPort = new PetriNetPortObject(
+                PetriNetUtil.stringToPetriNet(result));
+            output.setOutData(0, resultPort);
+        } catch (Exception ex) {
+            throw new RuntimeException("Ebi command failed: Ebi discover directly-follows-graph", ex);
+        }
+    }
 }

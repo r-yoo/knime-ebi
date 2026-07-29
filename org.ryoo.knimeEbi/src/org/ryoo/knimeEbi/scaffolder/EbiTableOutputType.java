@@ -5,6 +5,7 @@ public enum EbiTableOutputType { // -> all to .txt output format and then KNIME 
     STRING("string"),
     BOOL("boolean"),
     ROOT("root"),
+    CONTAINS_HTML("containsroot_html"),
     LOGARITHM("logarithm"),
     ROOTLOG("rootlog"),
     ROOTLOGDIV("rootlogdiv"),

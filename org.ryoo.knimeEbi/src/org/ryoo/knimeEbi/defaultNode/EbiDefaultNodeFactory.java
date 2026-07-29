@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortType;
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNodeFactory;

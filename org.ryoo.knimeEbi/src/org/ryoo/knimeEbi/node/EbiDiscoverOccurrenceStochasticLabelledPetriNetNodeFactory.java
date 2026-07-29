@@ -1,5 +1,8 @@
 package org.ryoo.knimeEbi.node;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +17,11 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.util.XLogUtil;
 
-import org.pm4knime.portobject.ProcessTreePortObjectSpec;
-
+import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
 
@@ -36,8 +40,8 @@ public class EbiDiscoverOccurrenceStochasticLabelledPetriNetNodeFactory extends 
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"EfficientTree",
-						"ProcessTreePortObject",
+						"StochasticLabelledPetriNetSimpleWeights",
+						"PetriNetPortObject",
 						"",
 						true
 					)
@@ -80,12 +84,33 @@ public class EbiDiscoverOccurrenceStochasticLabelledPetriNetNodeFactory extends 
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof ProcessTreePortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid ProcessTreePortObject!");
+        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
         output.setOutSpec(0, new PetriNetPortObjectSpec());
     }
 
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+        try {
+            final String[] ebiInputs = new String[2];
+
+            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
+            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
+            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
+
+            final String result = CallEbi.call_ebi(
+                "Ebi discover occurrence stochastic-labelled-Petri-net",
+                ".pnml",
+                ebiInputs);
+
+            final PetriNetPortObject resultPort = new PetriNetPortObject(
+                PetriNetUtil.stringToPetriNet(result));
+            output.setOutData(0, resultPort);
+        } catch (Exception ex) {
+            throw new RuntimeException("Ebi command failed: Ebi discover occurrence stochastic-labelled-Petri-net", ex);
+        }
+    }
 }

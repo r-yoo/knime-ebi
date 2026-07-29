@@ -1,5 +1,8 @@
 package org.ryoo.knimeEbi.node;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +17,9 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
-import org.pm4knime.portobject.ProcessTreePortObjectSpec;
+import org.pm4knime.portobject.XLogPortObject;
+import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.util.XLogUtil;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
@@ -31,8 +36,8 @@ public class EbiAnalyseNonStochasticAnyTracesNodeFactory extends EbiDefaultNodeF
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"EfficientTree",
-						"ProcessTreePortObject",
+						"XLog",
+						"XLogPortObject",
 						"",
 						true
 					)
@@ -71,12 +76,34 @@ public class EbiAnalyseNonStochasticAnyTracesNodeFactory extends EbiDefaultNodeF
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof ProcessTreePortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid ProcessTreePortObject!");
+        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi analyse-non-stochastic any-traces", "Ebi analyse-non-stochastic any-traces", StringCell.TYPE));
     }
 
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+        try {
+            final String[] ebiInputs = new String[1];
+
+            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+
+            final String result = CallEbi.call_ebi(
+                "Ebi analyse-non-stochastic any-traces",
+                ".bool",
+                ebiInputs);
+
+            final DataTableSpec spec = TableUtil.createOutputSpec(
+                COMMAND_METADATA.commandName,
+                COMMAND_METADATA.output.type,
+                StringCell.TYPE);
+            final BufferedDataContainer container = input.getExecutionContext().createDataContainer(spec);
+            container.addRowToTable(new DefaultRow("Row0", new StringCell(result)));
+            container.close();
+            output.setOutData(0, container.getTable());
+        } catch (Exception ex) {
+            throw new RuntimeException("Ebi command failed: Ebi analyse-non-stochastic any-traces", ex);
+        }
+    }
 }

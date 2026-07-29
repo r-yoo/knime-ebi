@@ -1,5 +1,8 @@
 package org.ryoo.knimeEbi.node;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +17,14 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.util.XLogUtil;
 
+import org.pm4knime.portobject.ProcessTreePortObject;
 import org.pm4knime.portobject.ProcessTreePortObjectSpec;
 
+import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
 
@@ -87,5 +94,24 @@ public class EbiDiscoverOccurrenceStochasticProcessTreeNodeFactory extends EbiDe
         output.setOutSpec(0, new PetriNetPortObjectSpec());
     }
 
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+        try {
+            final String[] ebiInputs = new String[2];
+
+            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            final ProcessTreePortObject inputPort1 = input.getInPortObject(1);
+            ebiInputs[1] = inputPort1.toText();
+
+            final String result = CallEbi.call_ebi(
+                "Ebi discover occurrence stochastic-process-tree",
+                ".pnml",
+                ebiInputs);
+
+            final PetriNetPortObject resultPort = new PetriNetPortObject(
+                PetriNetUtil.stringToPetriNet(result));
+            output.setOutData(0, resultPort);
+        } catch (Exception ex) {
+            throw new RuntimeException("Ebi command failed: Ebi discover occurrence stochastic-process-tree", ex);
+        }
+    }
 }

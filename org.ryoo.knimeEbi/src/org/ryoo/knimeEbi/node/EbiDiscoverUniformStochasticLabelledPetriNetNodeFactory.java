@@ -1,5 +1,8 @@
 package org.ryoo.knimeEbi.node;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +17,7 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
 
@@ -26,7 +30,7 @@ public class EbiDiscoverUniformStochasticLabelledPetriNetNodeFactory extends Ebi
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"AcceptingPetriNet",
+						"StochasticLabelledPetriNetSimpleWeights",
 						"PetriNetPortObject",
 						"",
 						true
@@ -73,5 +77,25 @@ public class EbiDiscoverUniformStochasticLabelledPetriNetNodeFactory extends Ebi
         output.setOutSpec(0, new PetriNetPortObjectSpec());
     }
 
-    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
+    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+        try {
+            final String[] ebiInputs = new String[1];
+
+            final PetriNetPortObject inputPort0 = input.getInPortObject(0);
+            final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
+            ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
+
+            final String result = CallEbi.call_ebi(
+                "Ebi discover uniform stochastic-labelled-Petri-net",
+                ".pnml",
+                ebiInputs);
+
+            final PetriNetPortObject resultPort = new PetriNetPortObject(
+                PetriNetUtil.stringToPetriNet(result));
+            output.setOutData(0, resultPort);
+        } catch (Exception ex) {
+            throw new RuntimeException("Ebi command failed: Ebi discover uniform stochastic-labelled-Petri-net", ex);
+        }
+    }
 }
