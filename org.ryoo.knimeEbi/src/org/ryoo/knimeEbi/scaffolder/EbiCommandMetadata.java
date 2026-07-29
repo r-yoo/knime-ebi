@@ -224,10 +224,10 @@ public class EbiCommandMetadata {
 	        case "XLog" ->
 	            "XLogPortObject";
 
-	        case "DirectlyFollowsGraph" ->
+	        case "DirectlyFollowsGraph" -> // TODO: Probably remove and put it to Future Work
 	            "DfgMsdPortObject";
 	           
-	        case "DirectlyFollowsModel" ->
+	        case "DirectlyFollowsModel" -> // TODO: Probably remove and put it to Future Work
 	        	"DFMPortObject";
 	            
 	        case "AcceptingPetriNet", "PetriNet", "StochasticLabelledPetriNet", "LoLaPetriNet", 
@@ -235,7 +235,7 @@ public class EbiCommandMetadata {
 	        	"StochasticLabelledPetriNetSimpleWeights"->
 	            "PetriNetPortObject";
 
-	        case "ProcessTree", "StochasticProcessTree" ->
+	        case "ProcessTree", "StochasticProcessTree", "EfficientTree" ->
 	            "ProcessTreePortObject";
 
 	        default ->

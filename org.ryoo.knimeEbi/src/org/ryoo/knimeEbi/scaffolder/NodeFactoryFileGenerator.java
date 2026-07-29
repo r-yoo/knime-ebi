@@ -133,7 +133,8 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 									+ "import org.knime.core.node.InvalidSettingsException;" + newLine
 									+ "import org.knime.node.DefaultModel;" + newLine
 									+ "import org.knime.node.DefaultModel.RequireModelParameters;" + newLine
-									+newLine;
+									+ "import org.knime.node.RequirePorts.PortsAdder;" + newLine
+									+ newLine;
 		importSectionSource += "import org.processmining.ebi.CallEbi;" + newLine
 							+ "import org.ryoo.knimeEbi.defaultNode.EbiDefaultNodeFactory;" + newLine
 							+ "import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;" + newLine
@@ -284,16 +285,16 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 	    validatePortMetadata(metadata);
 
 	    return """
-	        private static void addPorts(final PortsAdder ports) {
-	            for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
-	                if (input.isPort) {
-	                    ports.addInputPort(input.type, input.type, resolvePortType(input.portType));
+	            private static void addPorts(final PortsAdder ports) {
+	                for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
+	                    if (input.isPort) {
+	                        ports.addInputPort(input.type, input.type, resolvePortType(input.portType));
+	                    }
 	                }
-	            }
 
-	            EbiCommandMetadataParameter output = COMMAND_METADATA.output;
-	            ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));
-	        }
+	                EbiCommandMetadataParameter output = COMMAND_METADATA.output;
+	                ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));
+	            }
 
 	        """;
 	}
@@ -330,21 +331,22 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 		// TODO: Implement logic and change with cases withParameters and without
 		// Check in metadata.inputs: are there primitive Ebi parameters -> if else
 		if(metadata.hasNoPrimitiveInputs()) {
-			return "private static DefaultModel configureModel(final RequireModelParameters model) {\r\n"
-					+ "    return model\r\n"
-					+ "        .withoutParameters()\r\n"
-					+ "        .configure(" + factoryClassName + "::configure)\r\n"
-					+ "        .execute(" + factoryClassName + "::execute);\r\n"
-					+ "}";
+			return "    private static DefaultModel configureModel(final RequireModelParameters model) {\r\n"
+					+ "        return model\r\n"
+					+ "            .withoutParameters()\r\n"
+					+ "            .configure(" + factoryClassName + "::configure)\r\n"
+					+ "            .execute(" + factoryClassName + "::execute);\r\n"
+					+ "    }\r\n\r\n";
 		}
 		else {
 			return """
-				private static DefaultModel configureModel(final RequireModelParameters model) {
-				    return model
-				        .parametersClass(%s.class)
-				        .configure(%s::configure)
-				        .execute(%s::execute);
-				}	
+				    private static DefaultModel configureModel(final RequireModelParameters model) {
+				        return model
+				            .parametersClass(%s.class)
+				            .configure(%s::configure)
+				            .execute(%s::execute);
+				    } 
+					
 				""".formatted(settingsClassName, factoryClassName, factoryClassName);
 		}
 		
@@ -358,7 +360,7 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 		}
 	 * */
 	private static String createConfigureMethodSource(final EbiCommandMetadata metadata) {
-		String configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
+		String configureString = "    public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
 							+ "    	throws InvalidSettingsException {\r\n"
 							+ "     \r\n";
 		
@@ -379,7 +381,7 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 		
 		configureString += createOutputSpecStatement(metadata);
 		
-		configureString += "}\r\n";
+		configureString += "    }\r\n\r\n";
 		
 		return configureString;
 	}
@@ -387,10 +389,10 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 	private static String createOutputSpecStatement(EbiCommandMetadata metadata) {
 		
 		if("BufferedDataTable".equals(metadata.output.portType)) {
-			return "output.setOutSpec(0, TableUtil.createOutputSpec(\"" + metadata.commandName + "\", \"" + metadata.commandName + "\", StringCell.TYPE));\r\n";
+			return "        output.setOutSpec(0, TableUtil.createOutputSpec(\"" + metadata.commandName + "\", \"" + metadata.commandName + "\", StringCell.TYPE));\r\n";
 		}
 		else {
-			return "output.setOutSpec(0, new " + metadata.output.portType + "Spec());\r\n";
+			return "        output.setOutSpec(0, new " + metadata.output.portType + "Spec());\r\n";
 		}	
 	}
 	
@@ -401,46 +403,45 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 	 * }
 	 * */
 	private static String createExecuteMethodSource(final EbiCommandMetadata metadata) {
-		String newLine = System.lineSeparator();
-		String executeString = "";
+		String executeString = "    public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}\r\n";
 		
-		// TODO: How many inputs from metadata and what kind of mandatory parameters -> Settings or Dialog?
+		// TODO: Retrieve settings parameters in execute
 		for(EbiCommandMetadataParameter input : metadata.inputs) {
 			if(!input.isPort) {
 				continue;
 			}
 			
 			// TODO: still not right, change this metadata.output is also not considered yet
-			if("BufferedDataTable".equals(input.portType)) {
-				executeString = "public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {\r\n"
-							+ "	    try {\r\n"
-							+ "            final Object logPortObject = input.getInPortObject(0);\r\n"
-							+ "\r\n"
-							+ "	        final DataTableSpec spec = TableUtil.createOutputSpec(\"Ebi Completeness\", \"completeness\", StringCell.TYPE);\r\n"
-							+ "	        final BufferedDataContainer container =\r\n"
-							+ "	            input.getExecutionContext().createDataContainer(spec);\r\n"
-							+ "	        \r\n"
-							+ "            final String xesContent = XESUtil.writeLogToXesString(logPortObject);\r\n"
-							+ "\r\n"
-							+ "            final String result = CallEbi.call_ebi(\r\n"
-							+ "            		\"" + metadata.commandName + "\",\r\n"
-							+ "            		\"" + getFileExtension(metadata.output.type) + "\",\r\n"
-							+ "            		new String[] {xesContent});\r\n"
-							+ "\r\n"
-							+ "	        container.addRowToTable(new DefaultRow(\r\n"
-							+ "	            \"Row0\",\r\n"
-							+ "	            new StringCell(result)));\r\n"
-							+ "\r\n"
-							+ "	        container.close();\r\n"
-							+ "	        output.setOutData(0, container.getTable());\r\n"
-							+ "	    } catch (Exception ex) {\r\n"
-							+ "	        throw new RuntimeException(ex);\r\n"
-							+ "	    }\r\n"
-							+ "	}";
-			}
-			else {
-				executeString = "";
-			}
+//			if("BufferedDataTable".equals(input.portType)) {
+//				executeString = "public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {\r\n"
+//							+ "	    try {\r\n"
+//							+ "            final Object logPortObject = input.getInPortObject(0);\r\n"
+//							+ "\r\n"
+//							+ "	        final DataTableSpec spec = TableUtil.createOutputSpec(\"Ebi Completeness\", \"completeness\", StringCell.TYPE);\r\n"
+//							+ "	        final BufferedDataContainer container =\r\n"
+//							+ "	            input.getExecutionContext().createDataContainer(spec);\r\n"
+//							+ "	        \r\n"
+//							+ "            final String xesContent = XESUtil.writeLogToXesString(logPortObject);\r\n"
+//							+ "\r\n"
+//							+ "            final String result = CallEbi.call_ebi(\r\n"
+//							+ "            		\"" + metadata.commandName + "\",\r\n"
+//							+ "            		\"" + getFileExtension(metadata.output.type) + "\",\r\n"
+//							+ "            		new String[] {xesContent});\r\n"
+//							+ "\r\n"
+//							+ "	        container.addRowToTable(new DefaultRow(\r\n"
+//							+ "	            \"Row0\",\r\n"
+//							+ "	            new StringCell(result)));\r\n"
+//							+ "\r\n"
+//							+ "	        container.close();\r\n"
+//							+ "	        output.setOutData(0, container.getTable());\r\n"
+//							+ "	    } catch (Exception ex) {\r\n"
+//							+ "	        throw new RuntimeException(ex);\r\n"
+//							+ "	    }\r\n"
+//							+ "	}";
+//			}
+//			else {
+//				executeString = "";
+//			}
 		}
 		
 		return executeString;
