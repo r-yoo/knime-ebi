@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,7 +17,7 @@ import org.pm4knime.util.*;
 
 import org.processmining.ebi.CallEbi;
 
-public class NodeFactoryFileGenerator {
+public class NodeFactoryFileGenerator { // TODO: Refactor name because it will generate NodeFactories and NodeSettings (NodeFileGenerator)
 	private static final Pattern PLUGIN_DECLARATION_PATTERN = Pattern.compile("(?m)^\\s*@Plugin\\s*\\(");
 	
 	/*
@@ -24,7 +25,7 @@ public class NodeFactoryFileGenerator {
 	 * Immediately scaffold from output of Ebi itself java
 	 * original text (iterate through split elements) -> metadata parameter call EbiCommandMetadata constructor
 	 */
-	public static void generateEbiNodeFactories() {
+	public static void generateEbiNodeFactories() { // TODO: Refactor name because it will generate NodeFactories and NodeSettings (generateEbiNodes)
 		System.out.println("Starting generating Ebi Nodes...");
 		
 		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", ".txt", new String[0]);
@@ -49,6 +50,10 @@ public class NodeFactoryFileGenerator {
 			String settingsClassName = toClassNamePrefix(metadata.commandName) + "NodeSettings";
 			
 			generateEbiNodeFactory(metadata, factoryClassName, settingsClassName);
+			
+			if(!metadata.hasNoPrimitiveInputs()) {
+				generateEbiNodeSettings(metadata, settingsClassName);
+			}
 			
 			// Adding Node Factory to plugin.xml
 			try {
@@ -87,6 +92,10 @@ public class NodeFactoryFileGenerator {
 			System.out.println("Error writing " + factoryClassName + ".java");
 			e.printStackTrace();
 		}
+	}
+	
+	private static void generateEbiNodeSettings(final EbiCommandMetadata metadata, final String settingsClassName) {
+		// TODO: Implement here
 	}
 	
 	private static String createEbiNodeFactorySource(final EbiCommandMetadata metadata, final String factoryClassName, final String settingsClassName) {
@@ -272,34 +281,73 @@ public class NodeFactoryFileGenerator {
 	}
 	
 	private static String createAddPortsMethodSource(final EbiCommandMetadata metadata) {
-		// TODO: Simplify String -> only ports.addInputPort(...) and ports.addOutputPort(...)
-		return "private static void addPorts(PortsAdder ports) {\r\n"
-				+ "    for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {\r\n"
-				+ "        if (input.isPort) {\r\n"
-				+ "            ports.addInputPort(input.type, input.type, resolvePortType(input.portType));\r\n"
-				+ "        }\r\n"
-				+ "    }\r\n"
-				+ "\r\n"
-				+ "    EbiCommandMetadataParameter output = COMMAND_METADATA.output;\r\n"
-				+ "\r\n"
-				+ "    if (output != null && output.isPort) {\r\n"
-				+ "        ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));\r\n"
-				+ "    }\r\n"
-				+ "    else {\r\n"
-				+ "        throw new IllegalArgumentException(\"Output must be a non-null port parameter.\");"
-				+ "    }\r\n"
-				+ "}\r\n";
+	    validatePortMetadata(metadata);
+
+	    return """
+	        private static void addPorts(final PortsAdder ports) {
+	            for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
+	                if (input.isPort) {
+	                    ports.addInputPort(input.type, input.type, resolvePortType(input.portType));
+	                }
+	            }
+
+	            EbiCommandMetadataParameter output = COMMAND_METADATA.output;
+	            ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));
+	        }
+
+	        """;
+	}
+	
+	private static void validatePortMetadata(final EbiCommandMetadata metadata) {
+	    if (metadata == null) {
+	        throw new IllegalArgumentException("Metadata must not be null.");
+	    }
+
+	    if (metadata.inputs == null) {
+	        throw new IllegalArgumentException("Metadata inputs must not be null.");
+	    }
+
+	    for (EbiCommandMetadataParameter input : metadata.inputs) {
+	        if (input == null) {
+	            throw new IllegalArgumentException("Metadata inputs must not contain null.");
+	        }
+
+	        if (input.isPort && input.portType.isBlank()) {
+	            throw new IllegalArgumentException("Input port type must not be empty.");
+	        }
+	    }
+
+	    if (metadata.output == null || !metadata.output.isPort) {
+	        throw new IllegalArgumentException("Output must be a non-null port parameter.");
+	    }
+
+	    if (metadata.output.portType.isBlank()) {
+	        throw new IllegalArgumentException("Output port type must not be empty.");
+	    }
 	}
 	
 	private static String createConfigureModelMethodSource(final EbiCommandMetadata metadata, final String factoryClassName, final String settingsClassName) {
 		// TODO: Implement logic and change with cases withParameters and without
 		// Check in metadata.inputs: are there primitive Ebi parameters -> if else
-		return "private static DefaultModel configureModel(final RequireModelParameters model) {\r\n"
-				+ "    return model\r\n"
-				+ "        .withoutParameters()\r\n"
-				+ "        .configure(" + factoryClassName + "::configure)\r\n"
-				+ "        .execute(" + factoryClassName + "::execute);\r\n"
-				+ "}";
+		if(metadata.hasNoPrimitiveInputs()) {
+			return "private static DefaultModel configureModel(final RequireModelParameters model) {\r\n"
+					+ "    return model\r\n"
+					+ "        .withoutParameters()\r\n"
+					+ "        .configure(" + factoryClassName + "::configure)\r\n"
+					+ "        .execute(" + factoryClassName + "::execute);\r\n"
+					+ "}";
+		}
+		else {
+			return """
+				private static DefaultModel configureModel(final RequireModelParameters model) {
+				    return model
+				        .parametersClass(%s.class)
+				        .configure(%s::configure)
+				        .execute(%s::execute);
+				}	
+				""".formatted(settingsClassName, factoryClassName, factoryClassName);
+		}
+		
 	}
 	
 	/*
@@ -313,11 +361,13 @@ public class NodeFactoryFileGenerator {
 		String newLine = System.lineSeparator();
 		String configureString = "";
 		
+		// TODO: Change to normal for-loop, so that we can access the index
 		for(EbiCommandMetadataParameter input : metadata.inputs) {
 			if(!input.isPort) {
 				continue;
 			}
 			// TODO: still not right, change this metadata.output is also not considered yet
+			// Retrieve settings parameters in configure or not? -> First implement it without
 			if("BufferedDataTable".equals(input.type)) {
 				configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
 							+ "    	throws InvalidSettingsException {\r\n"

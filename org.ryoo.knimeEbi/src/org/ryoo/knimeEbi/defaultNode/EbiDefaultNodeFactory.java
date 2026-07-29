@@ -19,7 +19,6 @@ import org.pm4knime.portobject.ProcessTreePortObject;
 import org.pm4knime.portobject.XLogPortObject;
 
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
-import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 
 //BufferedDataTable.TYPE is the standard table port type.
 // TODO: Change parameter to EbiCommandMetadata and add RequiredModelParametersFunction

@@ -92,6 +92,16 @@ public class EbiCommandMetadata {
 	    return result.toString();
 	}
 	
+	public boolean hasNoPrimitiveInputs() {
+		for(EbiCommandMetadataParameter input : this.inputs) {
+			if(!input.isPort) {
+				return false;
+			}
+		}
+		
+		return true;
+	} 
+	
 	private static String extractCommandName(final String metadataBlock) {
 	    String[] parts = metadataBlock.split("==", 2);
 
