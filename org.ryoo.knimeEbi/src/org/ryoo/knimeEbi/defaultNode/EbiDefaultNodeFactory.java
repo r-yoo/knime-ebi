@@ -33,19 +33,9 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory {
 			   		.fullDescription(metadata.fullDescription)
 			   		.sinceVersion(0, 0, 0) // TODO: change to real version
 			  		.ports(portConfigurer)
-		            .model(m -> m
-		                    .withoutParameters()
-		                    .configure(EbiDefaultNodeFactory::configure)
-		                    .execute(EbiDefaultNodeFactory::execute))
-		            // .model(m -> requireModelParametersFunction(m, metadata.inputs))
+		            .model(modelConfigurer)
 		            .nodeType(NodeType.Manipulator));
 	}
-	
-	// TODO: Remove configure and execute here after completing configureMethod and putting it into .model as a parameter
-	public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output)
-		throws InvalidSettingsException{}
-	
-	public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {}
 	
 	protected static PortType resolvePortType(final String portTypeName) {
 	    if (portTypeName == null || portTypeName.isBlank()) {
@@ -57,8 +47,8 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory {
 	        case "XLogPortObject" -> XLogPortObject.TYPE;
 	        case "PetriNetPortObject" -> PetriNetPortObject.TYPE;
 	        case "ProcessTreePortObject" -> ProcessTreePortObject.TYPE;
-	        case "DfgMsdPortObject" -> DfgMsdPortObject.TYPE;
-	        case "DFMPortObject" -> DFMPortObject.TYPE;
+	        case "DfgMsdPortObject" -> DfgMsdPortObject.TYPE; // TODO: Probably remove and put it clearly into Future Work
+	        case "DFMPortObject" -> DFMPortObject.TYPE; // Probably remove and put it clearly into Future Work
 	        default -> throw new IllegalArgumentException("Unsupported port type: " + portTypeName);
 	    };
 	}

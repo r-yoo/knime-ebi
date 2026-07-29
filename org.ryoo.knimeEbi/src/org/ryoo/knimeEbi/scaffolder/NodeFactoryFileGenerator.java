@@ -46,8 +46,9 @@ public class NodeFactoryFileGenerator {
 			System.out.println(metadata.toString());
 			
 			String factoryClassName = toClassNamePrefix(metadata.commandName) + "NodeFactory";
+			String settingsClassName = toClassNamePrefix(metadata.commandName) + "NodeSettings";
 			
-			generateEbiNodeFactory(metadata, factoryClassName);
+			generateEbiNodeFactory(metadata, factoryClassName, settingsClassName);
 			
 			// Adding Node Factory to plugin.xml
 			try {
@@ -67,16 +68,14 @@ public class NodeFactoryFileGenerator {
 	    return metadataBlock != null && PLUGIN_DECLARATION_PATTERN.matcher(metadataBlock).find();
 	}
 	
-	private static void generateEbiNodeFactory(final EbiCommandMetadata metadata, final String factoryClassName) {
-		// TODO: Implement logic
-		// Check zero input, one input or two input
+	private static void generateEbiNodeFactory(final EbiCommandMetadata metadata, final String factoryClassName, final String settingsClassName) {
 		if(metadata.inputs == null || metadata.inputs.size() == 0) {
 			System.out.println(metadata.commandName + " is a itself type command...");
 			System.out.println("Node Factory will not be created...");
 			return;
 		}
 		
-		String ebiNodeFactorySource = createEbiNodeFactorySource(metadata, factoryClassName);
+		String ebiNodeFactorySource = createEbiNodeFactorySource(metadata, factoryClassName, settingsClassName);
 		
 		try {
 			Files.writeString(
@@ -90,7 +89,7 @@ public class NodeFactoryFileGenerator {
 		}
 	}
 	
-	private static String createEbiNodeFactorySource(final EbiCommandMetadata metadata, final String factoryClassName) {
+	private static String createEbiNodeFactorySource(final EbiCommandMetadata metadata, final String factoryClassName, final String settingsClassName) {
 		String newLine = System.lineSeparator();
 		StringBuilder source = new StringBuilder();
 		
@@ -104,7 +103,9 @@ public class NodeFactoryFileGenerator {
 		
 		source.append(createConstructorSource(factoryClassName));
 		
-		source.append(createAddPortsMethodSource());
+		source.append(createAddPortsMethodSource(metadata));
+		
+		source.append(createConfigureModelMethodSource(metadata, factoryClassName, settingsClassName));
 		
 		source.append(createConfigureMethodSource(metadata));
 		
@@ -263,15 +264,15 @@ public class NodeFactoryFileGenerator {
 		String newLine = System.lineSeparator();
 		
 		String constructorSource = "\tpublic "+ factoryClassName + "() {" + newLine
-								+ "\t\tsuper(COMMAND_METADATA, " + factoryClassName + "::addPorts);" + newLine
+								+ "\t\tsuper(COMMAND_METADATA, " + factoryClassName + "::addPorts, " + factoryClassName + "::configureModel);" + newLine
 								+ "\t}" + newLine
 								+ newLine;
 		
 		return constructorSource;
 	}
 	
-	private static String createAddPortsMethodSource() {
-		// String newLine = System.lineSeparator();
+	private static String createAddPortsMethodSource(final EbiCommandMetadata metadata) {
+		// TODO: Simplify String -> only ports.addInputPort(...) and ports.addOutputPort(...)
 		return "private static void addPorts(PortsAdder ports) {\r\n"
 				+ "    for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {\r\n"
 				+ "        if (input.isPort) {\r\n"
@@ -290,13 +291,14 @@ public class NodeFactoryFileGenerator {
 				+ "}\r\n";
 	}
 	
-	private static String createConfigureModelMethodSource() {
-		// TODO: Implement logic and change
+	private static String createConfigureModelMethodSource(final EbiCommandMetadata metadata, final String factoryClassName, final String settingsClassName) {
+		// TODO: Implement logic and change with cases withParameters and without
+		// Check in metadata.inputs: are there primitive Ebi parameters -> if else
 		return "private static DefaultModel configureModel(final RequireModelParameters model) {\r\n"
 				+ "    return model\r\n"
 				+ "        .withoutParameters()\r\n"
-				+ "        .configure(EbiDefaultNodeFactory::configure)\r\n" // change to factoryClassName
-				+ "        .execute(EbiDefaultNodeFactory::execute);\r\n" // change to factoryClassName
+				+ "        .configure(" + factoryClassName + "::configure)\r\n"
+				+ "        .execute(" + factoryClassName + "::execute);\r\n"
 				+ "}";
 	}
 	
