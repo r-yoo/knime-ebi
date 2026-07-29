@@ -4,16 +4,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.node.DefaultModel;
-import org.pm4knime.util.*;
 
 import org.processmining.ebi.CallEbi;
 
