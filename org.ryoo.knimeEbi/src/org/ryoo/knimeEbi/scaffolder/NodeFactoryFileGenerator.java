@@ -358,42 +358,40 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 		}
 	 * */
 	private static String createConfigureMethodSource(final EbiCommandMetadata metadata) {
-		String newLine = System.lineSeparator();
-		String configureString = "";
+		String configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
+							+ "    	throws InvalidSettingsException {\r\n"
+							+ "     \r\n";
 		
-		// TODO: Change to normal for-loop, so that we can access the index
+		int getInPortSpecIndex = 0;
+		// TODO: Retrieve settings parameters in configure or not?
 		for(EbiCommandMetadataParameter input : metadata.inputs) {
 			if(!input.isPort) {
 				continue;
 			}
-			// TODO: still not right, change this metadata.output is also not considered yet
-			// Retrieve settings parameters in configure or not? -> First implement it without
-			if("BufferedDataTable".equals(input.type)) {
-				configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
-							+ "    	throws InvalidSettingsException {\r\n"
-							+ "    	\r\n"
-							+ "        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {\r\n"
-							+ "            throw new InvalidSettingsException(\"Input is not a valid Event Log!\");\r\n"
-							+ "        }\r\n"
-							+ "\r\n"
-							+ "        output.setOutSpec(0, TableUtil.createOutputSpec(\"" + metadata.commandName + "\", \"" + metadata.commandName + "\", StringCell.TYPE));\r\n"
-							+ "    }";
-			}
-			else {
-				configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
-							+ "    	throws InvalidSettingsException {\r\n"
-							+ "    	\r\n"
-							+ "        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {\r\n"
-							+ "            throw new InvalidSettingsException(\"Input is not a valid Event Log!\");\r\n"
-							+ "        }\r\n"
-							+ "\r\n"
-							+ "        output.setOutSpec(0, new " + input.portType + "Spec());\r\n"
-							+ "    }";
-			}
+			
+			configureString += "        if (!(input.getInPortSpec(" + getInPortSpecIndex + ") instanceof " + input.portType + "Spec)) {\r\n"
+							 + "            throw new InvalidSettingsException(\"Input is not a valid " + input.portType + "!\");\r\n"
+							 + "        }\r\n"
+							 + "\r\n";
+			
+			getInPortSpecIndex++;
 		}
 		
+		configureString += createOutputSpecStatement(metadata);
+		
+		configureString += "}\r\n";
 		
 		return configureString;
+	}
+	
+	private static String createOutputSpecStatement(EbiCommandMetadata metadata) {
+		
+		if("BufferedDataTable".equals(metadata.output.portType)) {
+			return "output.setOutSpec(0, TableUtil.createOutputSpec(\"" + metadata.commandName + "\", \"" + metadata.commandName + "\", StringCell.TYPE));\r\n";
+		}
+		else {
+			return "output.setOutSpec(0, new " + metadata.output.portType + "Spec());\r\n";
+		}	
 	}
 	
 	/*
