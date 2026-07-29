@@ -17,7 +17,7 @@ import org.pm4knime.util.*;
 
 import org.processmining.ebi.CallEbi;
 
-public class NodeFactoryFileGenerator { // TODO: Refactor name because it will generate NodeFactories and NodeSettings (NodeFileGenerator)
+public class EbiNodeGenerator { // TODO: Refactor name because it will generate NodeFactories and NodeSettings (NodeFileGenerator)
 	private static final Pattern PLUGIN_DECLARATION_PATTERN = Pattern.compile("(?m)^\\s*@Plugin\\s*\\(");
 	
 	/*
@@ -25,7 +25,7 @@ public class NodeFactoryFileGenerator { // TODO: Refactor name because it will g
 	 * Immediately scaffold from output of Ebi itself java
 	 * original text (iterate through split elements) -> metadata parameter call EbiCommandMetadata constructor
 	 */
-	public static void generateEbiNodeFactories() { // TODO: Refactor name because it will generate NodeFactories and NodeSettings (generateEbiNodes)
+	public static void generateEbiNodes() { // TODO: Refactor name because it will generate NodeFactories and NodeSettings (generateEbiNodes)
 		System.out.println("Starting generating Ebi Nodes...");
 		
 		String ebiItselfJavaOutput = CallEbi.call_ebi("Ebi itself java", ".txt", new String[0]);
