@@ -1,7 +1,7 @@
 package org.ryoo.knimeEbi.defaultNode;
 
-import java.util.ArrayList;
-import java.util.function.UnaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
@@ -24,7 +24,7 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 //BufferedDataTable.TYPE is the standard table port type.
 // TODO: Change parameter to EbiCommandMetadata and add RequiredModelParametersFunction
 public class EbiDefaultNodeFactory extends DefaultNodeFactory {
-	public EbiDefaultNodeFactory(final EbiCommandMetadata metadata, final UnaryOperator<PortsAdder> portConfigurer) {
+	public EbiDefaultNodeFactory(final EbiCommandMetadata metadata, final Consumer<PortsAdder> portConfigurer, final Function<RequireModelParameters, DefaultModel> modelConfigurer) {
 		super(
 			   DefaultNode.create()
 			   		.name(metadata.commandName)
@@ -32,7 +32,7 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory {
 			   		.shortDescription(metadata.shortDescription)
 			   		.fullDescription(metadata.fullDescription)
 			   		.sinceVersion(0, 0, 0) // TODO: change to real version
-			  		.ports(p -> portConfigurer.apply(p))
+			  		.ports(portConfigurer)
 		            .model(m -> m
 		                    .withoutParameters()
 		                    .configure(EbiDefaultNodeFactory::configure)
@@ -41,7 +41,7 @@ public class EbiDefaultNodeFactory extends DefaultNodeFactory {
 		            .nodeType(NodeType.Manipulator));
 	}
 	
-	// Need to overwrite configure and execute -> static can not be overwritten, just define method with same signature
+	// TODO: Remove configure and execute here after completing configureMethod and putting it into .model as a parameter
 	public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output)
 		throws InvalidSettingsException{}
 	

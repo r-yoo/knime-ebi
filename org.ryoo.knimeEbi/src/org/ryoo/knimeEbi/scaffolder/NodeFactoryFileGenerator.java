@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.DefaultModel;
 import org.pm4knime.util.*;
 
 import org.processmining.ebi.CallEbi;
@@ -270,16 +272,22 @@ public class NodeFactoryFileGenerator {
 	
 	private static String createAddPortsMethodSource() {
 		// String newLine = System.lineSeparator();
-		return "private static PortsAdder addPorts(PortsAdder ports) {\r\n"
+		return "private static void addPorts(PortsAdder ports) {\r\n"
 				+ "    for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {\r\n"
 				+ "        if (input.isPort) {\r\n"
-				+ "            ports = ports.addInputPort(input.type, input.type, resolvePortType(input.portType));\r\n"
+				+ "            ports.addInputPort(input.type, input.type, resolvePortType(input.portType));\r\n"
 				+ "        }\r\n"
 				+ "    }\r\n"
 				+ "\r\n"
 				+ "    EbiCommandMetadataParameter output = COMMAND_METADATA.output;\r\n"
-				+ "    return ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));\r\n"
-				+ "}";
+				+ "\r\n"
+				+ "    if (output != null && output.isPort) {\r\n"
+				+ "        ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));\r\n"
+				+ "    }\r\n"
+				+ "    else {\r\n"
+				+ "        throw new IllegalArgumentException(\"Output must be a non-null port parameter.\");"
+				+ "    }\r\n"
+				+ "}\r\n";
 	}
 	
 	private static String createConfigureModelMethodSource() {
@@ -292,73 +300,118 @@ public class NodeFactoryFileGenerator {
 				+ "}";
 	}
 	
+	/*
+	 * Expected output:
+	 * public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output)
+		throws InvalidSettingsException{
+			...
+		}
+	 * */
 	private static String createConfigureMethodSource(final EbiCommandMetadata metadata) {
 		String newLine = System.lineSeparator();
 		String configureString = "";
 		
-		if("BufferedDataTable".equals(portType)) {
-			configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
-						+ "    	throws InvalidSettingsException {\r\n"
-						+ "    	\r\n"
-						+ "        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {\r\n"
-						+ "            throw new InvalidSettingsException(\"Input is not a valid Event Log!\");\r\n"
-						+ "        }\r\n"
-						+ "\r\n"
-						+ "        output.setOutSpec(0, TableUtil.createOutputSpec(\"" + commandName + "\", \"" + commandName + "\", StringCell.TYPE));\r\n"
-						+ "    }";
+		for(EbiCommandMetadataParameter input : metadata.inputs) {
+			if(!input.isPort) {
+				continue;
+			}
+			// TODO: still not right, change this metadata.output is also not considered yet
+			if("BufferedDataTable".equals(input.type)) {
+				configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
+							+ "    	throws InvalidSettingsException {\r\n"
+							+ "    	\r\n"
+							+ "        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {\r\n"
+							+ "            throw new InvalidSettingsException(\"Input is not a valid Event Log!\");\r\n"
+							+ "        }\r\n"
+							+ "\r\n"
+							+ "        output.setOutSpec(0, TableUtil.createOutputSpec(\"" + metadata.commandName + "\", \"" + metadata.commandName + "\", StringCell.TYPE));\r\n"
+							+ "    }";
+			}
+			else {
+				configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
+							+ "    	throws InvalidSettingsException {\r\n"
+							+ "    	\r\n"
+							+ "        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {\r\n"
+							+ "            throw new InvalidSettingsException(\"Input is not a valid Event Log!\");\r\n"
+							+ "        }\r\n"
+							+ "\r\n"
+							+ "        output.setOutSpec(0, new " + input.portType + "Spec());\r\n"
+							+ "    }";
+			}
 		}
-		else {
-			configureString = "public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) \r\n"
-						+ "    	throws InvalidSettingsException {\r\n"
-						+ "    	\r\n"
-						+ "        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {\r\n"
-						+ "            throw new InvalidSettingsException(\"Input is not a valid Event Log!\");\r\n"
-						+ "        }\r\n"
-						+ "\r\n"
-						+ "        output.setOutSpec(0, new " + portType + "Spec());\r\n"
-						+ "    }";
-		}
+		
 		
 		return configureString;
 	}
 	
-	// TODO: change signature and add cases for TwoInput and ZeroInput -> += String
+	/*
+	 * Expected output:
+	 * public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
+	 * 		...
+	 * }
+	 * */
 	private static String createExecuteMethodSource(final EbiCommandMetadata metadata) {
 		String newLine = System.lineSeparator();
 		String executeString = "";
+		
 		// TODO: How many inputs from metadata and what kind of mandatory parameters -> Settings or Dialog?
-		if(portType == "BufferedDataTable") {
-			executeString = "public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {\r\n"
-						+ "	    try {\r\n"
-						+ "            final Object logPortObject = input.getInPortObject(0);\r\n"
-						+ "\r\n"
-						+ "	        final DataTableSpec spec = TableUtil.createOutputSpec(\"Ebi Completeness\", \"completeness\", StringCell.TYPE);\r\n"
-						+ "	        final BufferedDataContainer container =\r\n"
-						+ "	            input.getExecutionContext().createDataContainer(spec);\r\n"
-						+ "	        \r\n"
-						+ "            final String xesContent = XESUtil.writeLogToXesString(logPortObject);\r\n"
-						+ "\r\n"
-						+ "            final String result = CallEbi.call_ebi(\r\n"
-						+ "            		\"" + commandName + "\",\r\n"
-						+ "            		\"" + outputType + "\",\r\n"
-						+ "            		new String[] {xesContent});\r\n"
-						+ "\r\n"
-						+ "	        container.addRowToTable(new DefaultRow(\r\n"
-						+ "	            \"Row0\",\r\n"
-						+ "	            new StringCell(result)));\r\n"
-						+ "\r\n"
-						+ "	        container.close();\r\n"
-						+ "	        output.setOutData(0, container.getTable());\r\n"
-						+ "	    } catch (Exception ex) {\r\n"
-						+ "	        throw new RuntimeException(ex);\r\n"
-						+ "	    }\r\n"
-						+ "	}";
-		}
-		else {
-			executeString = "";
+		for(EbiCommandMetadataParameter input : metadata.inputs) {
+			if(!input.isPort) {
+				continue;
+			}
+			
+			// TODO: still not right, change this metadata.output is also not considered yet
+			if("BufferedDataTable".equals(input.portType)) {
+				executeString = "public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {\r\n"
+							+ "	    try {\r\n"
+							+ "            final Object logPortObject = input.getInPortObject(0);\r\n"
+							+ "\r\n"
+							+ "	        final DataTableSpec spec = TableUtil.createOutputSpec(\"Ebi Completeness\", \"completeness\", StringCell.TYPE);\r\n"
+							+ "	        final BufferedDataContainer container =\r\n"
+							+ "	            input.getExecutionContext().createDataContainer(spec);\r\n"
+							+ "	        \r\n"
+							+ "            final String xesContent = XESUtil.writeLogToXesString(logPortObject);\r\n"
+							+ "\r\n"
+							+ "            final String result = CallEbi.call_ebi(\r\n"
+							+ "            		\"" + metadata.commandName + "\",\r\n"
+							+ "            		\"" + getFileExtension(metadata.output.type) + "\",\r\n"
+							+ "            		new String[] {xesContent});\r\n"
+							+ "\r\n"
+							+ "	        container.addRowToTable(new DefaultRow(\r\n"
+							+ "	            \"Row0\",\r\n"
+							+ "	            new StringCell(result)));\r\n"
+							+ "\r\n"
+							+ "	        container.close();\r\n"
+							+ "	        output.setOutData(0, container.getTable());\r\n"
+							+ "	    } catch (Exception ex) {\r\n"
+							+ "	        throw new RuntimeException(ex);\r\n"
+							+ "	    }\r\n"
+							+ "	}";
+			}
+			else {
+				executeString = "";
+			}
 		}
 		
 		return executeString;
+	}
+	
+	private static String getFileExtension(final String outputType) {
+	    if (outputType == null) {
+	        throw new IllegalArgumentException("Output type must not be null.");
+	    }
+
+	    // TODO: Add also other outputTypes
+	    return switch (outputType.toLowerCase()) {
+	        case "petrinet"    -> ".pnml";
+	        case "xlog"        -> ".xes";
+	        case "fraction"    -> ".frac";
+	        case "processtree" -> ".ptml";
+	        case "string"      -> ".txt";
+	        default -> throw new IllegalArgumentException(
+	            "Unsupported output type: " + outputType
+	        );
+	    };
 	}
 	
 	private static String toClassNamePrefix(final String commandName) {
