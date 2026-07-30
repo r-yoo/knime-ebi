@@ -100,7 +100,35 @@ public class EbiCommandMetadata {
 		}
 		
 		return true;
-	} 
+	}
+	
+	public static void validatePortMetadata(final EbiCommandMetadata metadata) {
+	    if (metadata == null) {
+	        throw new IllegalArgumentException("Metadata must not be null.");
+	    }
+
+	    if (metadata.inputs == null) {
+	        throw new IllegalArgumentException("Metadata inputs must not be null.");
+	    }
+
+	    for (EbiCommandMetadataParameter input : metadata.inputs) {
+	        if (input == null) {
+	            throw new IllegalArgumentException("Metadata inputs must not contain null.");
+	        }
+
+	        if (input.isPort && input.portType.isBlank()) {
+	            throw new IllegalArgumentException("Input port type must not be empty.");
+	        }
+	    }
+
+	    if (metadata.output == null || !metadata.output.isPort) {
+	        throw new IllegalArgumentException("Output must be a non-null port parameter.");
+	    }
+
+	    if (metadata.output.portType.isBlank()) {
+	        throw new IllegalArgumentException("Output port type must not be empty.");
+	    }
+	}
 	
 	private static String extractCommandName(final String metadataBlock) {
 	    String[] parts = metadataBlock.split("==", 2);
