@@ -18,12 +18,6 @@
          point="org.knime.workbench.repository.nodes">
       <node
             category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiAnaComp.EbiAnaCompNodeFactory"/>
-      <node
-            category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiAnaVar.EbiAnaVarNodeFactory"/>
-      <node
-            category-path="/"
             factory-class="org.ryoo.knimeEbi.node.EbiConvertLogNodeFactory"/>
       <node
             category-path="/"
@@ -160,27 +154,6 @@
       <node
             category-path="/"
             factory-class="org.ryoo.knimeEbi.node.EbiVisualiseTextNodeFactory"/>
-      <node
-            category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiItselfDocumentationCommandsNodeFactory"/>
-      <node
-            category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiItselfDocumentationFileHandlersNodeFactory"/>
-      <node
-            category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiItselfDocumentationHomeNodeFactory"/>
-      <node
-            category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiItselfHtmlNodeFactory"/>
-      <node
-            category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiItselfJavaNodeFactory"/>
-      <node
-            category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiItselfLogoNodeFactory"/>
-      <node
-            category-path="/"
-            factory-class="org.ryoo.knimeEbi.node.EbiItselfManualNodeFactory"/>
 </extension>
    
 </plugin>

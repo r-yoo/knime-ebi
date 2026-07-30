@@ -17,9 +17,9 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
-import org.pm4knime.portobject.XLogPortObject;
-import org.pm4knime.portobject.XLogPortObjectSpec;
-import org.pm4knime.util.XLogUtil;
+import org.pm4knime.portobject.PetriNetPortObject;
+import org.pm4knime.portobject.PetriNetPortObjectSpec;
+import org.pm4knime.util.PetriNetUtil;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
@@ -36,8 +36,8 @@ public class EbiAnalyseNonStochasticAnyTracesNodeFactory extends EbiDefaultNodeF
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"XLog",
-						"XLogPortObject",
+						"StochasticLabelledPetriNetSimpleWeights",
+						"PetriNetPortObject",
 						"",
 						true
 					)
@@ -76,8 +76,8 @@ public class EbiAnalyseNonStochasticAnyTracesNodeFactory extends EbiDefaultNodeF
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
+        if (!(input.getInPortSpec(0) instanceof PetriNetPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi analyse-non-stochastic any-traces", "Ebi analyse-non-stochastic any-traces", StringCell.TYPE));
@@ -87,7 +87,10 @@ public class EbiAnalyseNonStochasticAnyTracesNodeFactory extends EbiDefaultNodeF
         try {
             final String[] ebiInputs = new String[1];
 
-            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            final PetriNetPortObject inputPort0 = input.getInPortObject(0);
+            final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
+            ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
 
             final String result = CallEbi.call_ebi(
                 "Ebi analyse-non-stochastic any-traces",

@@ -40,7 +40,7 @@ public class EbiDiscoverOccurrenceStochasticLabelledPetriNetNodeFactory extends 
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
+						"AcceptingPetriNet",
 						"PetriNetPortObject",
 						"",
 						true

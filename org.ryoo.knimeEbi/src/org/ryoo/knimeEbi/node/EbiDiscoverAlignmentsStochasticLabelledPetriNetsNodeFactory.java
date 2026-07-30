@@ -21,9 +21,6 @@ import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
 import org.pm4knime.util.XLogUtil;
 
-import org.pm4knime.portobject.ProcessTreePortObject;
-import org.pm4knime.portobject.ProcessTreePortObjectSpec;
-
 import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
@@ -43,8 +40,8 @@ public class EbiDiscoverAlignmentsStochasticLabelledPetriNetsNodeFactory extends
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"EfficientTree",
-						"ProcessTreePortObject",
+						"AcceptingPetriNet",
+						"PetriNetPortObject",
 						"",
 						true
 					)
@@ -87,8 +84,8 @@ public class EbiDiscoverAlignmentsStochasticLabelledPetriNetsNodeFactory extends
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof ProcessTreePortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid ProcessTreePortObject!");
+        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
         output.setOutSpec(0, new PetriNetPortObjectSpec());
@@ -99,8 +96,10 @@ public class EbiDiscoverAlignmentsStochasticLabelledPetriNetsNodeFactory extends
             final String[] ebiInputs = new String[2];
 
             ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            final ProcessTreePortObject inputPort1 = input.getInPortObject(1);
-            ebiInputs[1] = inputPort1.toText();
+            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
+            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
+            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
 
             final String result = CallEbi.call_ebi(
                 "Ebi discover alignments stochastic-labelled-Petri-nets",

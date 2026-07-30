@@ -33,12 +33,19 @@ public class EbiNodeGenerator {
 		        continue;
 		    }
 			
-			// For checking metadata extraction
 			EbiCommandMetadata metadata = new EbiCommandMetadata(metadataBlock);
-			System.out.println(metadata.toString());
+			
+			// For checking metadata extraction
+			// System.out.println(metadata.toString());
 			
 			String factoryClassName = toClassNamePrefix(metadata.commandName) + "NodeFactory";
 			String settingsClassName = toClassNamePrefix(metadata.commandName) + "NodeSettings";
+			
+			if(metadata.inputs == null || metadata.inputs.size() == 0) {
+				System.out.println(metadata.commandName + " is a itself type command...");
+				System.out.println("Node Factory will not be created...");
+				continue;
+			}
 			
 			generateEbiNodeFactory(metadata, factoryClassName, settingsClassName);
 			
@@ -65,12 +72,6 @@ public class EbiNodeGenerator {
 	}
 	
 	private static void generateEbiNodeFactory(final EbiCommandMetadata metadata, final String factoryClassName, final String settingsClassName) {
-		if(metadata.inputs == null || metadata.inputs.size() == 0) {
-			System.out.println(metadata.commandName + " is a itself type command...");
-			System.out.println("Node Factory will not be created...");
-			return;
-		}
-		
 		String ebiNodeFactorySource = EbiNodeFactorySourceGenerator.generate(metadata, factoryClassName, settingsClassName);
 		
 		try {
