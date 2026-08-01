@@ -102,7 +102,7 @@ public class EbiTestBootstrapTestNodeFactory extends EbiDefaultNodeFactory {
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi test bootstrap-test", "Ebi test bootstrap-test", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi test bootstrap-test", "string", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {

@@ -98,7 +98,7 @@ public class EbiTestLogCategoricalAttributeNodeFactory extends EbiDefaultNodeFac
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi test log-categorical-attribute", "Ebi test log-categorical-attribute", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi test log-categorical-attribute", "string", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {

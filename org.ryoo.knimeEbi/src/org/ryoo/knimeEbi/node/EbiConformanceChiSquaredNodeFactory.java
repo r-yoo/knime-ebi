@@ -90,7 +90,7 @@ public class EbiConformanceChiSquaredNodeFactory extends EbiDefaultNodeFactory {
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance chi-squared", "Ebi conformance chi-squared", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance chi-squared", "fraction", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {

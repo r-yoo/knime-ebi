@@ -90,7 +90,7 @@ public class EbiConformanceEarthMoversNodeFactory extends EbiDefaultNodeFactory 
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance earth-movers", "Ebi conformance earth-movers", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance earth-movers", "fraction", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {

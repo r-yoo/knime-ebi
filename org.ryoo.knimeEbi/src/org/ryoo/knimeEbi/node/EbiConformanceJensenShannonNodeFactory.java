@@ -90,7 +90,7 @@ public class EbiConformanceJensenShannonNodeFactory extends EbiDefaultNodeFactor
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance jensen-shannon", "Ebi conformance jensen-shannon", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance jensen-shannon", "rootlogdiv", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {

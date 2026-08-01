@@ -21,6 +21,10 @@ import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
 import org.pm4knime.util.XLogUtil;
 
+import org.pm4knime.portobject.PetriNetPortObject;
+import org.pm4knime.portobject.PetriNetPortObjectSpec;
+import org.pm4knime.util.PetriNetUtil;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.DefaultRow;
@@ -42,8 +46,8 @@ public class EbiConformanceEntropicRelevanceNodeFactory extends EbiDefaultNodeFa
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"XLog",
-						"XLogPortObject",
+						"StochasticLabelledPetriNetSimpleWeights",
+						"PetriNetPortObject",
 						"",
 						true
 					)
@@ -86,11 +90,11 @@ public class EbiConformanceEntropicRelevanceNodeFactory extends EbiDefaultNodeFa
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
+        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance entropic-relevance", "Ebi conformance entropic-relevance", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance entropic-relevance", "logdiv", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
@@ -98,7 +102,10 @@ public class EbiConformanceEntropicRelevanceNodeFactory extends EbiDefaultNodeFa
             final String[] ebiInputs = new String[2];
 
             ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
+            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
+            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
+            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
 
             final String result = CallEbi.call_ebi(
                 "Ebi conformance entropic-relevance",

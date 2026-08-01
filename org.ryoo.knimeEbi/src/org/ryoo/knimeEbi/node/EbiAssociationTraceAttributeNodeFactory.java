@@ -92,7 +92,7 @@ public class EbiAssociationTraceAttributeNodeFactory extends EbiDefaultNodeFacto
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi association trace-attribute", "Ebi association trace-attribute", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi association trace-attribute", "containsroot_html", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {

@@ -86,7 +86,7 @@ public class EbiAssociationAllTraceAttributesNodeFactory extends EbiDefaultNodeF
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi association all-trace-attributes", "Ebi association all-trace-attributes", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi association all-trace-attributes", "string", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {

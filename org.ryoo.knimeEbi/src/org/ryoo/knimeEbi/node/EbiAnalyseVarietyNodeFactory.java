@@ -80,7 +80,7 @@ public class EbiAnalyseVarietyNodeFactory extends EbiDefaultNodeFactory {
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi analyse variety", "Ebi analyse variety", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi analyse variety", "fraction", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {

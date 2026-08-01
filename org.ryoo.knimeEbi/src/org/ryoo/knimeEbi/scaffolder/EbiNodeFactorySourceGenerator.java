@@ -254,7 +254,7 @@ public final class EbiNodeFactorySourceGenerator {
 	private static String createOutputSpecStatement(EbiCommandMetadata metadata) {
 		
 		if("BufferedDataTable".equals(metadata.output.portType)) {
-			return "        output.setOutSpec(0, TableUtil.createOutputSpec(\"" + metadata.commandName + "\", \"" + metadata.commandName + "\", StringCell.TYPE));\r\n";
+			return "        output.setOutSpec(0, TableUtil.createOutputSpec(\"" + metadata.commandName + "\", \"" + metadata.output.type + "\", StringCell.TYPE));\r\n";
 		}
 		else {
 			return "        output.setOutSpec(0, new " + metadata.output.portType + "Spec());\r\n";
