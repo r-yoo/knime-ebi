@@ -21,6 +21,10 @@ import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
 import org.pm4knime.util.XLogUtil;
 
+import org.pm4knime.portobject.PetriNetPortObject;
+import org.pm4knime.portobject.PetriNetPortObjectSpec;
+import org.pm4knime.util.PetriNetUtil;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.DefaultRow;
@@ -42,8 +46,8 @@ public class EbiConformanceUnitEarthMoversNodeFactory extends EbiDefaultNodeFact
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"XLog",
-						"XLogPortObject",
+						"StochasticLabelledPetriNetSimpleWeights",
+						"PetriNetPortObject",
 						"",
 						true
 					)
@@ -86,8 +90,8 @@ public class EbiConformanceUnitEarthMoversNodeFactory extends EbiDefaultNodeFact
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
+        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance unit-earth-movers", "Ebi conformance unit-earth-movers", StringCell.TYPE));
@@ -98,7 +102,10 @@ public class EbiConformanceUnitEarthMoversNodeFactory extends EbiDefaultNodeFact
             final String[] ebiInputs = new String[2];
 
             ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
+            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
+            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
+            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
 
             final String result = CallEbi.call_ebi(
                 "Ebi conformance unit-earth-movers",

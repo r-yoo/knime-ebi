@@ -36,7 +36,7 @@ public class EbiAnalyseNonStochasticAnyTracesNodeFactory extends EbiDefaultNodeF
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
+						"AcceptingPetriNet",
 						"PetriNetPortObject",
 						"",
 						true
