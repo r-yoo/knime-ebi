@@ -17,6 +17,9 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.ProcessTreePortObject;
+import org.pm4knime.portobject.ProcessTreePortObjectSpec;
+
 import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
@@ -30,8 +33,8 @@ public class EbiDiscoverNonStochasticFlowerDeterministicFiniteAutomatonNodeFacto
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"AcceptingPetriNet",
-						"PetriNetPortObject",
+						"EfficientTree",
+						"ProcessTreePortObject",
 						"",
 						true
 					)
@@ -50,14 +53,19 @@ public class EbiDiscoverNonStochasticFlowerDeterministicFiniteAutomatonNodeFacto
 	}
 
     private static void addPorts(final PortsAdder ports) {
+  int inputPortIndex = 1;
+
         for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
             if (input.isPort) {
-                ports.addInputPort(input.type, input.type, resolvePortType(input.portType));
+                String portName = "Input " + inputPortIndex + " " + input.type;
+                ports.addInputPort(portName, input.type, resolvePortType(input.portType));
+
+                inputPortIndex++;
             }
         }
 
         EbiCommandMetadataParameter output = COMMAND_METADATA.output;
-        ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));
+        ports.addOutputPort("Output " + output.type, output.type, resolvePortType(output.portType));
     }
 
     private static DefaultModel configureModel(final RequireModelParameters model) {
@@ -70,8 +78,8 @@ public class EbiDiscoverNonStochasticFlowerDeterministicFiniteAutomatonNodeFacto
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof PetriNetPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
+        if (!(input.getInPortSpec(0) instanceof ProcessTreePortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid ProcessTreePortObject!");
         }
 
         output.setOutSpec(0, new PetriNetPortObjectSpec());
@@ -81,10 +89,8 @@ public class EbiDiscoverNonStochasticFlowerDeterministicFiniteAutomatonNodeFacto
         try {
             final String[] ebiInputs = new String[1];
 
-            final PetriNetPortObject inputPort0 = input.getInPortObject(0);
-            final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
-            PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
-            ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
+            final ProcessTreePortObject inputPort0 = input.getInPortObject(0);
+            ebiInputs[0] = inputPort0.toText();
 
             final String result = CallEbi.call_ebi(
                 "Ebi discover-non-stochastic flower deterministic-finite-automaton",

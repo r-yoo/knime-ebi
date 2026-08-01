@@ -21,10 +21,6 @@ import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
 import org.pm4knime.util.XLogUtil;
 
-import org.pm4knime.portobject.PetriNetPortObject;
-import org.pm4knime.portobject.PetriNetPortObjectSpec;
-import org.pm4knime.util.PetriNetUtil;
-
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.DefaultRow;
@@ -46,8 +42,8 @@ public class EbiConformanceHellingerNodeFactory extends EbiDefaultNodeFactory {
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"PetriNetPortObject",
+						"XLog",
+						"XLogPortObject",
 						"",
 						true
 					)
@@ -66,14 +62,19 @@ public class EbiConformanceHellingerNodeFactory extends EbiDefaultNodeFactory {
 	}
 
     private static void addPorts(final PortsAdder ports) {
+  int inputPortIndex = 1;
+
         for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
             if (input.isPort) {
-                ports.addInputPort(input.type, input.type, resolvePortType(input.portType));
+                String portName = "Input " + inputPortIndex + " " + input.type;
+                ports.addInputPort(portName, input.type, resolvePortType(input.portType));
+
+                inputPortIndex++;
             }
         }
 
         EbiCommandMetadataParameter output = COMMAND_METADATA.output;
-        ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));
+        ports.addOutputPort("Output " + output.type, output.type, resolvePortType(output.portType));
     }
 
     private static DefaultModel configureModel(final RequireModelParameters model) {
@@ -90,8 +91,8 @@ public class EbiConformanceHellingerNodeFactory extends EbiDefaultNodeFactory {
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
+        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance hellinger", "fraction", StringCell.TYPE));
@@ -102,10 +103,7 @@ public class EbiConformanceHellingerNodeFactory extends EbiDefaultNodeFactory {
             final String[] ebiInputs = new String[2];
 
             ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
-            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
-            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
-            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
+            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
 
             final String result = CallEbi.call_ebi(
                 "Ebi conformance hellinger",

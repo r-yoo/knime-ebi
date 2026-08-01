@@ -54,14 +54,19 @@ public class EbiConvertStochasticDeterministicFiniteAutomatonNodeFactory extends
 	}
 
     private static void addPorts(final PortsAdder ports) {
+  int inputPortIndex = 1;
+
         for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
             if (input.isPort) {
-                ports.addInputPort(input.type, input.type, resolvePortType(input.portType));
+                String portName = "Input " + inputPortIndex + " " + input.type;
+                ports.addInputPort(portName, input.type, resolvePortType(input.portType));
+
+                inputPortIndex++;
             }
         }
 
         EbiCommandMetadataParameter output = COMMAND_METADATA.output;
-        ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));
+        ports.addOutputPort("Output " + output.type, output.type, resolvePortType(output.portType));
     }
 
     private static DefaultModel configureModel(final RequireModelParameters model) {

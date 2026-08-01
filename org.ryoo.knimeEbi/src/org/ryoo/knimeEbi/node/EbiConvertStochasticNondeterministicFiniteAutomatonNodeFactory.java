@@ -17,10 +17,6 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
-import org.pm4knime.portobject.XLogPortObject;
-import org.pm4knime.portobject.XLogPortObjectSpec;
-import org.pm4knime.util.XLogUtil;
-
 import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
@@ -34,8 +30,8 @@ public class EbiConvertStochasticNondeterministicFiniteAutomatonNodeFactory exte
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"XLog",
-						"XLogPortObject",
+						"StochasticLabelledPetriNetSimpleWeights",
+						"PetriNetPortObject",
 						"",
 						true
 					)
@@ -54,14 +50,19 @@ public class EbiConvertStochasticNondeterministicFiniteAutomatonNodeFactory exte
 	}
 
     private static void addPorts(final PortsAdder ports) {
+  int inputPortIndex = 1;
+
         for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
             if (input.isPort) {
-                ports.addInputPort(input.type, input.type, resolvePortType(input.portType));
+                String portName = "Input " + inputPortIndex + " " + input.type;
+                ports.addInputPort(portName, input.type, resolvePortType(input.portType));
+
+                inputPortIndex++;
             }
         }
 
         EbiCommandMetadataParameter output = COMMAND_METADATA.output;
-        ports.addOutputPort(output.type, output.type, resolvePortType(output.portType));
+        ports.addOutputPort("Output " + output.type, output.type, resolvePortType(output.portType));
     }
 
     private static DefaultModel configureModel(final RequireModelParameters model) {
@@ -74,8 +75,8 @@ public class EbiConvertStochasticNondeterministicFiniteAutomatonNodeFactory exte
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
+        if (!(input.getInPortSpec(0) instanceof PetriNetPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
         output.setOutSpec(0, new PetriNetPortObjectSpec());
@@ -85,7 +86,10 @@ public class EbiConvertStochasticNondeterministicFiniteAutomatonNodeFactory exte
         try {
             final String[] ebiInputs = new String[1];
 
-            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            final PetriNetPortObject inputPort0 = input.getInPortObject(0);
+            final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
+            ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
 
             final String result = CallEbi.call_ebi(
                 "Ebi convert stochastic-nondeterministic-finite-automaton",
