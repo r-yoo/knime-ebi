@@ -1,5 +1,13 @@
 package org.processmining.ebi;
 
+import java.io.File;
+import java.net.URL;
+import java.nio.file.Path;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+
 public class CallEbi {
 	
 	// This declares that the static `hello` method will be provided
@@ -21,10 +29,21 @@ public class CallEbi {
     
     static {
         try {
-        	System.loadLibrary("ebi"); // -Djava.library.path=D:\Dev\Workspaces\eclipse\knime-ebi\knime_integration\lib in Run Config
+        	Bundle bundle = FrameworkUtil.getBundle(CallEbi.class);
+        	
+        	if(bundle != null) {
+        		URL url = bundle.getEntry("lib/ebi.dll");
+            	URL ebiUrl = FileLocator.toFileURL(url);
+
+            	System.load(new File(ebiUrl.toURI()).getAbsolutePath()); // Added lib/ in build.properties
+        	}
+        	else {
+        		System.load(Path.of("lib", "ebi.dll").toAbsolutePath().toString());
+        	}
+        	
         	System.out.println("Ebi library loaded");
         } catch (Exception e) {
-        	e.printStackTrace();
+        	throw new ExceptionInInitializerError(e);
         }
     }
     
