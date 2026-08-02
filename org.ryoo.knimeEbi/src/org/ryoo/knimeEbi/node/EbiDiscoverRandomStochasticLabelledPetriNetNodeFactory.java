@@ -17,9 +17,6 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
-import org.pm4knime.portobject.ProcessTreePortObject;
-import org.pm4knime.portobject.ProcessTreePortObjectSpec;
-
 import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
@@ -33,8 +30,8 @@ public class EbiDiscoverRandomStochasticLabelledPetriNetNodeFactory extends EbiD
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"EfficientTree",
-						"ProcessTreePortObject",
+						"AcceptingPetriNet",
+						"PetriNetPortObject",
 						"",
 						true
 					)
@@ -53,7 +50,7 @@ public class EbiDiscoverRandomStochasticLabelledPetriNetNodeFactory extends EbiD
 	}
 
     private static void addPorts(final PortsAdder ports) {
-  int inputPortIndex = 1;
+        int inputPortIndex = 1;
 
         for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
             if (input.isPort) {
@@ -78,8 +75,8 @@ public class EbiDiscoverRandomStochasticLabelledPetriNetNodeFactory extends EbiD
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof ProcessTreePortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid ProcessTreePortObject!");
+        if (!(input.getInPortSpec(0) instanceof PetriNetPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
         output.setOutSpec(0, new PetriNetPortObjectSpec());
@@ -89,8 +86,10 @@ public class EbiDiscoverRandomStochasticLabelledPetriNetNodeFactory extends EbiD
         try {
             final String[] ebiInputs = new String[1];
 
-            final ProcessTreePortObject inputPort0 = input.getInPortObject(0);
-            ebiInputs[0] = inputPort0.toText();
+            final PetriNetPortObject inputPort0 = input.getInPortObject(0);
+            final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
+            PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
+            ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
 
             final String result = CallEbi.call_ebi(
                 "Ebi discover random stochastic-labelled-Petri-net",

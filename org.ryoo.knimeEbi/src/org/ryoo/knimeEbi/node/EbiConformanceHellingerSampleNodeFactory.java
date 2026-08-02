@@ -21,6 +21,10 @@ import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
 
+import org.pm4knime.portobject.XLogPortObject;
+import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.util.XLogUtil;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.DefaultRow;
@@ -42,8 +46,8 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"PetriNetPortObject",
+						"XLog",
+						"XLogPortObject",
 						"",
 						true
 					),
@@ -68,7 +72,7 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
 	}
 
     private static void addPorts(final PortsAdder ports) {
-  int inputPortIndex = 1;
+        int inputPortIndex = 1;
 
         for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
             if (input.isPort) {
@@ -97,8 +101,8 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
             throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
+        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance hellinger-sample", "fraction", StringCell.TYPE));
@@ -113,10 +117,7 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
             final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
             PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
             ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
-            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
-            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
-            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
-            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
+            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
             ebiInputs[2] = String.valueOf(settings.m_input2);
 
             final String result = CallEbi.call_ebi(

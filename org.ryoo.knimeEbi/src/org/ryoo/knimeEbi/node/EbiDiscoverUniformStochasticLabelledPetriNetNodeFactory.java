@@ -30,7 +30,7 @@ public class EbiDiscoverUniformStochasticLabelledPetriNetNodeFactory extends Ebi
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"AcceptingPetriNet",
+						"StochasticLabelledPetriNetSimpleWeights",
 						"PetriNetPortObject",
 						"",
 						true
@@ -50,7 +50,7 @@ public class EbiDiscoverUniformStochasticLabelledPetriNetNodeFactory extends Ebi
 	}
 
     private static void addPorts(final PortsAdder ports) {
-  int inputPortIndex = 1;
+        int inputPortIndex = 1;
 
         for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
             if (input.isPort) {

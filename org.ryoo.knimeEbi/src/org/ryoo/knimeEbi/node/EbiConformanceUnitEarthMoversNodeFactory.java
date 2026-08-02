@@ -66,7 +66,7 @@ public class EbiConformanceUnitEarthMoversNodeFactory extends EbiDefaultNodeFact
 	}
 
     private static void addPorts(final PortsAdder ports) {
-  int inputPortIndex = 1;
+        int inputPortIndex = 1;
 
         for (EbiCommandMetadataParameter input : COMMAND_METADATA.inputs) {
             if (input.isPort) {
