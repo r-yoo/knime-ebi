@@ -23,3 +23,8 @@ hs_err_pid*
 replay_pid*
 /.metadata/
 **/bin/
+
+# tmp folders
+outputs/
+thesis-support/
+tmp/
