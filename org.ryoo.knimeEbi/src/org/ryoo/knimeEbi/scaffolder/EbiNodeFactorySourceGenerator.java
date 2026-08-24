@@ -100,14 +100,6 @@ public final class EbiNodeFactorySourceGenerator {
 	            + "import org.pm4knime.portobject.ProcessTreePortObjectSpec;" + newLine
 	            + newLine;
 
-	        case "DfgMsdPortObject" -> // TODO: Possibly remove those if I don't find a function like stringToPetrNet
-	            "import org.pm4knime.portobject.DfgMsdPortObjectSpec;" + newLine
-	            + newLine;
-
-	        case "DFMPortObject" -> // Possibly remove those if I don't find a function like stringToPetrNet
-	            "import org.pm4knime.portobject.DFMPortObjectSpec;" + newLine
-	            + newLine;
-
 	        default ->
 	            throw new IllegalArgumentException(portType + " is unsupported!");
 	    };

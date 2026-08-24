@@ -68,7 +68,7 @@ public final class PluginXmlNodeRegistrar {
 
 	    String nodeXml =
 	        "      <node" + newline
-	            + "            category-path=\"/\"" + newline // TODO: Specify category
+	            + "            category-path=\"/\"" + newline // Generic category
 	            + "            factory-class=\""
 	            + factoryClassName
 	            + "\"/>"

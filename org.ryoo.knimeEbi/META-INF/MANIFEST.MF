@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Ebi extension for KNIME Workbench
 Automatic-Module-Name: org.ryoo.knimeEbi
-Bundle-SymbolicName: org.ryoo.knimeEbi; singleton:=true
+Bundle-SymbolicName: org.ryoo.knimeEbi;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-ClassPath: knimeebi.jar
 Bundle-Vendor: ryoo

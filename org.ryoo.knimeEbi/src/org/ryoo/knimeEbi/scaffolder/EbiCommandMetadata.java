@@ -251,12 +251,6 @@ public class EbiCommandMetadata {
 	    return switch (outputType) {
 	        case "XLog" ->
 	            "XLogPortObject";
-
-	        case "DirectlyFollowsGraph" -> // TODO: Probably remove and put it to Future Work
-	            "DfgMsdPortObject";
-	           
-	        case "DirectlyFollowsModel" -> // TODO: Probably remove and put it to Future Work
-	        	"DFMPortObject";
 	            
 	        case "AcceptingPetriNet", "PetriNet", "StochasticLabelledPetriNet", "LoLaPetriNet", 
 	        	"StochasticDeterministicFiniteAutomaton", "StochasticNonDeterministicFiniteAutomaton", "BusinessProcessModelAndNotation", 
