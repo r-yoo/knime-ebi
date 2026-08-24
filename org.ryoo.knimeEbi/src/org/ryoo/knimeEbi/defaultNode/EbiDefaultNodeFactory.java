@@ -17,7 +17,6 @@ import org.pm4knime.portobject.XLogPortObject;
 
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 
-//BufferedDataTable.TYPE is the standard table port type.
 public class EbiDefaultNodeFactory extends DefaultNodeFactory {
 	public EbiDefaultNodeFactory(final EbiCommandMetadata metadata, final Consumer<PortsAdder> portConfigurer, final Function<RequireModelParameters, DefaultModel> modelConfigurer) {
 		super(
