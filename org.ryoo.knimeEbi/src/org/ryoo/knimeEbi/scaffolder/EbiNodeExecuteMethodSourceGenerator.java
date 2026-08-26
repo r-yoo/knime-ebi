@@ -92,7 +92,6 @@ public final class EbiNodeExecuteMethodSourceGenerator {
 	        throw new IllegalArgumentException("Output type must not be null.");
 	    }
 
-	    // TODO: Add also other outputTypes
 	    return switch (outputType.toLowerCase()) {
 	        case "petrinet"    -> ".pnml";
 	        case "xlog"        -> ".xes";

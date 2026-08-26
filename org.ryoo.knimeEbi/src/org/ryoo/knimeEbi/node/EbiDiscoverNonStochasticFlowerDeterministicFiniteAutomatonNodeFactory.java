@@ -17,9 +17,8 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
-import org.pm4knime.portobject.XLogPortObject;
-import org.pm4knime.portobject.XLogPortObjectSpec;
-import org.pm4knime.util.XLogUtil;
+import org.pm4knime.portobject.ProcessTreePortObject;
+import org.pm4knime.portobject.ProcessTreePortObjectSpec;
 
 import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
@@ -34,8 +33,8 @@ public class EbiDiscoverNonStochasticFlowerDeterministicFiniteAutomatonNodeFacto
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"XLog",
-						"XLogPortObject",
+						"EfficientTree",
+						"ProcessTreePortObject",
 						"",
 						true
 					)
@@ -79,8 +78,8 @@ public class EbiDiscoverNonStochasticFlowerDeterministicFiniteAutomatonNodeFacto
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
+        if (!(input.getInPortSpec(0) instanceof ProcessTreePortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid ProcessTreePortObject!");
         }
 
         output.setOutSpec(0, new PetriNetPortObjectSpec());
@@ -90,7 +89,8 @@ public class EbiDiscoverNonStochasticFlowerDeterministicFiniteAutomatonNodeFacto
         try {
             final String[] ebiInputs = new String[1];
 
-            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            final ProcessTreePortObject inputPort0 = input.getInPortObject(0);
+            ebiInputs[0] = inputPort0.toText();
 
             final String result = CallEbi.call_ebi(
                 "Ebi discover-non-stochastic flower deterministic-finite-automaton",

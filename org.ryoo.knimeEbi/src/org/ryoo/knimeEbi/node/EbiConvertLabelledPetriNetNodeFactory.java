@@ -30,7 +30,7 @@ public class EbiConvertLabelledPetriNetNodeFactory extends EbiDefaultNodeFactory
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
+						"AcceptingPetriNet",
 						"PetriNetPortObject",
 						"",
 						true
