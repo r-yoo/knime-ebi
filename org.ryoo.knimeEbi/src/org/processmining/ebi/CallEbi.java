@@ -10,22 +10,8 @@ import org.osgi.framework.FrameworkUtil;
 
 public class CallEbi {
 	
-	// This declares that the static `hello` method will be provided
-    // a native library.
-	/*
-	 * How to get the header file:
-	 * copy all .jar files from the Ivy cache to the lib folder of the ProM package
-	 * javac -h . -cp .ebi.jar:lib/* src/org/processmining/ebi/CallEbi.java
-	 */
     static native String call_ebi_internal(String command_name, String output_format, String[] inputs);
     
-    
-    /**
-     * For ProM developers: 
-     * 
-     * - Download a version of the Ebi lib for your Operating System from http://www.promtools.org/prom6/packages/Rust/.
-     * - Unzip the library in the .zip file to the lib/ folder.
-     */
     
     static {
         try {
