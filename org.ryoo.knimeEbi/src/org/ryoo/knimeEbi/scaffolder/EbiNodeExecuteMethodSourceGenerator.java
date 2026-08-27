@@ -160,10 +160,11 @@ public final class EbiNodeExecuteMethodSourceGenerator {
 					+ "            output.setOutData(0, resultPort);\r\n";
 
 			case "ProcessTreePortObject" ->
-				"            final ProcessTreePortObject resultPort = new ProcessTreePortObject();\r\n"
+				"            final String compatiblePtml = PtmlCompatibilityUtil.toPm4KnimePtml(result);\r\n"
+					+ "            final ProcessTreePortObject resultPort = new ProcessTreePortObject();\r\n"
 					+ "            resultPort.loadFromDefault(\r\n"
 					+ "                new ProcessTreePortObjectSpec(),\r\n"
-					+ "                new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8)));\r\n"
+					+ "                new ByteArrayInputStream(compatiblePtml.getBytes(StandardCharsets.UTF_8)));\r\n"
 					+ "            output.setOutData(0, resultPort);\r\n";
 
 			default ->
