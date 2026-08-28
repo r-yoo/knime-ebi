@@ -38,10 +38,17 @@ public final class EbiNodeExecuteMethodSourceGenerator {
 		source.append("                \"").append(JavaSourceUtil.escapeJavaString(getFileExtension(metadata.output.type))).append("\",\r\n");
 		source.append("                ebiInputs);\r\n");
 		source.append("\r\n");
+		source.append("            if (result != null && result.stripLeading().startsWith(\"Ebi: error:\")) {\r\n");
+		source.append("                throw new IllegalStateException(result.trim());\r\n");
+		source.append("            }\r\n");
 		source.append(createOutputConversionSource(metadata));
 		source.append("        } catch (Exception ex) {\r\n");
-		source.append("            throw new RuntimeException(\"Ebi command failed: ")
-			.append(JavaSourceUtil.escapeJavaString(metadata.commandName)).append("\", ex);\r\n");
+		source.append("            final String detail = ex.getMessage();\r\n");
+		source.append("            throw new RuntimeException(\r\n");
+		source.append("                \"Ebi command failed: ")
+			.append(JavaSourceUtil.escapeJavaString(metadata.commandName)).append("\"\r\n");
+		source.append("                    + (detail == null || detail.isBlank() ? \"\" : \": \" + detail),\r\n");
+		source.append("                ex);\r\n");
 		source.append("        }\r\n");
 		source.append("    }\r\n");
 

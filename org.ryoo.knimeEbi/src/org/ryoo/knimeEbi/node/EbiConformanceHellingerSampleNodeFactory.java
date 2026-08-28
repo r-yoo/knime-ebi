@@ -125,6 +125,9 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
                 ".frac",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final DataTableSpec spec = TableUtil.createOutputSpec(
                 COMMAND_METADATA.commandName,
                 COMMAND_METADATA.output.type,
@@ -134,7 +137,11 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
             container.close();
             output.setOutData(0, container.getTable());
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi conformance hellinger-sample", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi conformance hellinger-sample"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

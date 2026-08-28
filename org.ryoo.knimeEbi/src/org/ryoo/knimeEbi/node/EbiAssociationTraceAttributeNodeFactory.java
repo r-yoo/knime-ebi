@@ -114,6 +114,9 @@ public class EbiAssociationTraceAttributeNodeFactory extends EbiDefaultNodeFacto
                 ".croot",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final DataTableSpec spec = TableUtil.createOutputSpec(
                 COMMAND_METADATA.commandName,
                 COMMAND_METADATA.output.type,
@@ -123,7 +126,11 @@ public class EbiAssociationTraceAttributeNodeFactory extends EbiDefaultNodeFacto
             container.close();
             output.setOutData(0, container.getTable());
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi association trace-attribute", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi association trace-attribute"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

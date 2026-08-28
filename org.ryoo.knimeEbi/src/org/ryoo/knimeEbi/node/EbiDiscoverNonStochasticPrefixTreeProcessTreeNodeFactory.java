@@ -97,11 +97,18 @@ public class EbiDiscoverNonStochasticPrefixTreeProcessTreeNodeFactory extends Eb
                 ".pnml",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final PetriNetPortObject resultPort = new PetriNetPortObject(
                 PetriNetUtil.stringToPetriNet(result));
             output.setOutData(0, resultPort);
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi discover-non-stochastic prefix-tree process-tree", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi discover-non-stochastic prefix-tree process-tree"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

@@ -110,6 +110,9 @@ public class EbiProbabilityLogNodeFactory extends EbiDefaultNodeFactory {
                 ".frac",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final DataTableSpec spec = TableUtil.createOutputSpec(
                 COMMAND_METADATA.commandName,
                 COMMAND_METADATA.output.type,
@@ -119,7 +122,11 @@ public class EbiProbabilityLogNodeFactory extends EbiDefaultNodeFactory {
             container.close();
             output.setOutData(0, container.getTable());
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi probability log", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi probability log"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

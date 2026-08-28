@@ -102,6 +102,9 @@ public class EbiAnalyseNonStochasticAnyTracesNodeFactory extends EbiDefaultNodeF
                 ".bool",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final DataTableSpec spec = TableUtil.createOutputSpec(
                 COMMAND_METADATA.commandName,
                 COMMAND_METADATA.output.type,
@@ -111,7 +114,11 @@ public class EbiAnalyseNonStochasticAnyTracesNodeFactory extends EbiDefaultNodeF
             container.close();
             output.setOutData(0, container.getTable());
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi analyse-non-stochastic any-traces", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi analyse-non-stochastic any-traces"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

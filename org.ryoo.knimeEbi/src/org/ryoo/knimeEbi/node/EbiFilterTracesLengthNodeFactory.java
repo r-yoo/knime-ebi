@@ -108,11 +108,18 @@ public class EbiFilterTracesLengthNodeFactory extends EbiDefaultNodeFactory {
                 ".xes",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final XLogPortObject resultPort = new XLogPortObject(
                 XLogUtil.loadLog(new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8))));
             output.setOutData(0, resultPort);
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi filter traces length", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi filter traces length"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

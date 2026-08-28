@@ -99,6 +99,9 @@ public class EbiVisualiseTextNodeFactory extends EbiDefaultNodeFactory {
                 ".txt",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final DataTableSpec spec = TableUtil.createOutputSpec(
                 COMMAND_METADATA.commandName,
                 COMMAND_METADATA.output.type,
@@ -108,7 +111,11 @@ public class EbiVisualiseTextNodeFactory extends EbiDefaultNodeFactory {
             container.close();
             output.setOutData(0, container.getTable());
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi visualise text", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi visualise text"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

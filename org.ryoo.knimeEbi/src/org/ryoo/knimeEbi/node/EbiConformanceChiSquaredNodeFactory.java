@@ -117,6 +117,9 @@ public class EbiConformanceChiSquaredNodeFactory extends EbiDefaultNodeFactory {
                 ".frac",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final DataTableSpec spec = TableUtil.createOutputSpec(
                 COMMAND_METADATA.commandName,
                 COMMAND_METADATA.output.type,
@@ -126,7 +129,11 @@ public class EbiConformanceChiSquaredNodeFactory extends EbiDefaultNodeFactory {
             container.close();
             output.setOutData(0, container.getTable());
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi conformance chi-squared", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi conformance chi-squared"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

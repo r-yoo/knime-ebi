@@ -105,11 +105,18 @@ public class EbiDiscoverDirectlyFollowsGraphNodeFactory extends EbiDefaultNodeFa
                 ".pnml",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final PetriNetPortObject resultPort = new PetriNetPortObject(
                 PetriNetUtil.stringToPetriNet(result));
             output.setOutData(0, resultPort);
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi discover directly-follows-graph", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi discover directly-follows-graph"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }

@@ -121,6 +121,9 @@ public class EbiTestLogCategoricalAttributeNodeFactory extends EbiDefaultNodeFac
                 ".txt",
                 ebiInputs);
 
+            if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
+                throw new IllegalStateException(result.trim());
+            }
             final DataTableSpec spec = TableUtil.createOutputSpec(
                 COMMAND_METADATA.commandName,
                 COMMAND_METADATA.output.type,
@@ -130,7 +133,11 @@ public class EbiTestLogCategoricalAttributeNodeFactory extends EbiDefaultNodeFac
             container.close();
             output.setOutData(0, container.getTable());
         } catch (Exception ex) {
-            throw new RuntimeException("Ebi command failed: Ebi test log-categorical-attribute", ex);
+            final String detail = ex.getMessage();
+            throw new RuntimeException(
+                "Ebi command failed: Ebi test log-categorical-attribute"
+                    + (detail == null || detail.isBlank() ? "" : ": " + detail),
+                ex);
         }
     }
 }
