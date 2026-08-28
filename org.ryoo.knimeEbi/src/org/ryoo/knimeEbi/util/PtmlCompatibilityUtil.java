@@ -58,7 +58,7 @@ public final class PtmlCompatibilityUtil {
                 throw new IllegalArgumentException("PTML root references unknown node '" + rootId + "'.");
             }
 
-            if (hasEbiProcessTreeStructure(rootId, nodes)) {
+            if (matchesKnownBrokenFlowerSignature(rootId, nodes, edges)) {
                 edges = rebuildEbiProcessTree(document, rootId, nodes);
             }
             validateTree(rootId, nodes, edges);
@@ -172,11 +172,43 @@ public final class PtmlCompatibilityUtil {
         return edges;
     }
 
-    private static boolean hasEbiProcessTreeStructure(final String rootId,
-            final Map<String, PtmlElement> nodes) {
-        return "xorLoop".equals(nodes.get(rootId).name())
-            && nodes.containsKey(rootId + "redo")
-            && nodes.containsKey(rootId + "exit");
+    private static boolean matchesKnownBrokenFlowerSignature(final String rootId,
+            final Map<String, PtmlElement> nodes, final List<Edge> edges) {
+        // Repair only the exact defect emitted by the current Ebi flower command. A valid
+        // tree using the same conventional redo/exit IDs must retain its original edges.
+        final PtmlElement root = nodes.get(rootId);
+        final PtmlElement redo = nodes.get(rootId + "redo");
+        final PtmlElement exit = nodes.get(rootId + "exit");
+        if (!"xorLoop".equals(root.name()) || redo == null || !"xor".equals(redo.name())
+                || exit == null || !"automaticTask".equals(exit.name())) {
+            return false;
+        }
+
+        final List<PtmlElement> bodyCandidates = nodes.values().stream()
+            .filter(node -> "automaticTask".equals(node.name()))
+            .filter(node -> node != exit)
+            .toList();
+        final List<PtmlElement> activities = nodes.values().stream()
+            .filter(node -> node != root && node != redo && node != exit)
+            .filter(node -> !"automaticTask".equals(node.name()))
+            .toList();
+        if (bodyCandidates.size() != 1 || activities.isEmpty()
+                || activities.stream().anyMatch(node -> !"manualTask".equals(node.name()))) {
+            return false;
+        }
+
+        final Set<String> expectedTargets = new HashSet<>();
+        expectedTargets.add(bodyCandidates.get(0).attribute("id"));
+        expectedTargets.add(exit.attribute("id"));
+        activities.forEach(activity -> expectedTargets.add(activity.attribute("id") + "redo"));
+
+        final Set<String> actualTargets = new HashSet<>();
+        for (Edge edge : edges) {
+            if (!rootId.equals(edge.sourceId()) || !actualTargets.add(edge.targetId())) {
+                return false;
+            }
+        }
+        return edges.size() == expectedTargets.size() && actualTargets.equals(expectedTargets);
     }
 
     private static List<Edge> rebuildEbiProcessTree(final PtmlDocument document, final String rootId,
