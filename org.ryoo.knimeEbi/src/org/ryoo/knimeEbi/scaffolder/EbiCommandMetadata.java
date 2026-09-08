@@ -249,12 +249,11 @@ public class EbiCommandMetadata {
 	
 	private static String getPm4KnimePortType(final String outputType) {
 	    return switch (outputType) {
-	        case "XLog" ->
+	        case "XLog", "StochasticLabelledPetriNetSimpleWeights" ->
 	            "XLogPortObject";
 	            
 	        case "AcceptingPetriNet", "PetriNet", "StochasticLabelledPetriNet", "LoLaPetriNet", 
-	        	"StochasticDeterministicFiniteAutomaton", "StochasticNonDeterministicFiniteAutomaton", "BusinessProcessModelAndNotation", 
-	        	"StochasticLabelledPetriNetSimpleWeights"->
+	        	"StochasticDeterministicFiniteAutomaton", "StochasticNonDeterministicFiniteAutomaton", "BusinessProcessModelAndNotation" ->
 	            "PetriNetPortObject";
 
 	        case "ProcessTree", "StochasticProcessTree", "EfficientTree" ->

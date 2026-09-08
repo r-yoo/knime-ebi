@@ -42,7 +42,7 @@ public class EbiConformanceJensenShannonNodeFactory extends EbiDefaultNodeFactor
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"XLog",
+						"StochasticLabelledPetriNetSimpleWeights",
 						"XLogPortObject",
 						"",
 						true

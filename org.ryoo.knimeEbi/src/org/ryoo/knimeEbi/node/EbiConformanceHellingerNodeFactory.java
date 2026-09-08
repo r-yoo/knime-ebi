@@ -42,7 +42,7 @@ public class EbiConformanceHellingerNodeFactory extends EbiDefaultNodeFactory {
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"XLog",
+						"StochasticLabelledPetriNetSimpleWeights",
 						"XLogPortObject",
 						"",
 						true

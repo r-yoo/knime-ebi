@@ -21,10 +21,6 @@ import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
 import org.pm4knime.util.XLogUtil;
 
-import org.pm4knime.portobject.PetriNetPortObject;
-import org.pm4knime.portobject.PetriNetPortObjectSpec;
-import org.pm4knime.util.PetriNetUtil;
-
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.DefaultRow;
@@ -36,18 +32,18 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
 		new EbiCommandMetadata(
 			"Ebi conformance hellinger-sample",
 			"Compute Hellinger stochastic conformance, which is 1 - the Hellinger distance, if both inputs need to be sampled.",
-			"Compute Hellinger stochastic conformance, which is 1 - the Hellinger distance, if both inputs need to be sampled. If one input is a log or a finite stochastic language, then use `hsc`.",
+			"Compute Hellinger stochastic conformance, which is 1 - the Hellinger distance, if both inputs need to be sampled.",
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"XLog",
+						"StochasticLabelledPetriNetSimpleWeights",
 						"XLogPortObject",
 						"",
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"PetriNetPortObject",
+						"XLog",
+						"XLogPortObject",
 						"",
 						true
 					),
@@ -101,8 +97,8 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
+        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
         output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance hellinger-sample", "fraction", StringCell.TYPE));
@@ -114,10 +110,7 @@ public class EbiConformanceHellingerSampleNodeFactory extends EbiDefaultNodeFact
             final EbiConformanceHellingerSampleNodeSettings settings = input.getParameters();
 
             ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
-            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
-            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
-            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
+            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
             ebiInputs[2] = String.valueOf(settings.m_input2);
 
             final String result = CallEbi.call_ebi(

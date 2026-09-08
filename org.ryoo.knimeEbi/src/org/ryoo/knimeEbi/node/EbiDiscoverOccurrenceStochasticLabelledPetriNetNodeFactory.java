@@ -41,7 +41,7 @@ public class EbiDiscoverOccurrenceStochasticLabelledPetriNetNodeFactory extends 
 					),
 					new EbiCommandMetadataParameter(
 						"StochasticLabelledPetriNetSimpleWeights",
-						"PetriNetPortObject",
+						"XLogPortObject",
 						"",
 						true
 					)
@@ -89,8 +89,8 @@ public class EbiDiscoverOccurrenceStochasticLabelledPetriNetNodeFactory extends 
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof PetriNetPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
+        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
         output.setOutSpec(0, new PetriNetPortObjectSpec());
@@ -101,10 +101,7 @@ public class EbiDiscoverOccurrenceStochasticLabelledPetriNetNodeFactory extends 
             final String[] ebiInputs = new String[2];
 
             ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            final PetriNetPortObject inputPort1 = input.getInPortObject(1);
-            final ByteArrayOutputStream inputBuffer1 = new ByteArrayOutputStream();
-            PetriNetUtil.exportToStream(inputPort1.getANet(), inputBuffer1);
-            ebiInputs[1] = inputBuffer1.toString(StandardCharsets.UTF_8);
+            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
 
             final String result = CallEbi.call_ebi(
                 "Ebi discover occurrence stochastic-labelled-Petri-net",

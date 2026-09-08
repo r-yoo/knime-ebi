@@ -27,44 +27,32 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 
-public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNodeFactory {
+public class EbiAnalyseNonStochasticTimestampsOrderedNodeFactory extends EbiDefaultNodeFactory {
 	private static final EbiCommandMetadata COMMAND_METADATA =
 		new EbiCommandMetadata(
-			"Ebi conformance jensen-shannon-sample",
-			"Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance, if both inputs need to be sampled.",
-			"Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance, if both inputs need to be sampled.",
+			"Ebi analyse-non-stochastic timestamps-ordered",
+			"Check whether all timestamps are in a correct order.",
+			"Check whether all timestamps are in a correct order.",
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
+						"XLog",
 						"XLogPortObject",
 						"",
 						true
-					),
-					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"XLogPortObject",
-						"",
-						true
-					),
-					new EbiCommandMetadataParameter(
-						"Integer",
-						"",
-						"Number of traces to sample.",
-						false
 					)
 				)
 			),
 			new EbiCommandMetadataParameter(
-				"rootlogdiv",
+				"boolean",
 				"BufferedDataTable",
 				"",
 				true
 			)
 		);
 
-	public EbiConformanceJensenShannonSampleNodeFactory() {
-		super(COMMAND_METADATA, EbiConformanceJensenShannonSampleNodeFactory::addPorts, EbiConformanceJensenShannonSampleNodeFactory::configureModel);
+	public EbiAnalyseNonStochasticTimestampsOrderedNodeFactory() {
+		super(COMMAND_METADATA, EbiAnalyseNonStochasticTimestampsOrderedNodeFactory::addPorts, EbiAnalyseNonStochasticTimestampsOrderedNodeFactory::configureModel);
 	}
 
     private static void addPorts(final PortsAdder ports) {
@@ -85,9 +73,9 @@ public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNode
 
     private static DefaultModel configureModel(final RequireModelParameters model) {
         return model
-            .parametersClass(EbiConformanceJensenShannonSampleNodeSettings.class)
-            .configure(EbiConformanceJensenShannonSampleNodeFactory::configure)
-            .execute(EbiConformanceJensenShannonSampleNodeFactory::execute);
+            .withoutParameters()
+            .configure(EbiAnalyseNonStochasticTimestampsOrderedNodeFactory::configure)
+            .execute(EbiAnalyseNonStochasticTimestampsOrderedNodeFactory::execute);
     }
 
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
@@ -97,25 +85,18 @@ public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNode
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
-        }
-
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance jensen-shannon-sample", "rootlogdiv", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi analyse-non-stochastic timestamps-ordered", "boolean", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
         try {
-            final String[] ebiInputs = new String[3];
-            final EbiConformanceJensenShannonSampleNodeSettings settings = input.getParameters();
+            final String[] ebiInputs = new String[1];
 
             ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
-            ebiInputs[2] = String.valueOf(settings.m_input2);
 
             final String result = CallEbi.call_ebi(
-                "Ebi conformance jensen-shannon-sample",
-                ".rldiv",
+                "Ebi analyse-non-stochastic timestamps-ordered",
+                ".bool",
                 ebiInputs);
 
             if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
@@ -132,7 +113,7 @@ public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNode
         } catch (Exception ex) {
             final String detail = ex.getMessage();
             throw new RuntimeException(
-                "Ebi command failed: Ebi conformance jensen-shannon-sample"
+                "Ebi command failed: Ebi analyse-non-stochastic timestamps-ordered"
                     + (detail == null || detail.isBlank() ? "" : ": " + detail),
                 ex);
         }

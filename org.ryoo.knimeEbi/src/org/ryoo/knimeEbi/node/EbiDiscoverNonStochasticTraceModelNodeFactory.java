@@ -21,50 +21,36 @@ import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
 import org.pm4knime.util.XLogUtil;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
+import org.pm4knime.portobject.PetriNetPortObject;
+import org.pm4knime.portobject.PetriNetPortObjectSpec;
+import org.pm4knime.util.PetriNetUtil;
 
-public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNodeFactory {
+public class EbiDiscoverNonStochasticTraceModelNodeFactory extends EbiDefaultNodeFactory {
 	private static final EbiCommandMetadata COMMAND_METADATA =
 		new EbiCommandMetadata(
-			"Ebi conformance jensen-shannon-sample",
-			"Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance, if both inputs need to be sampled.",
-			"Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance, if both inputs need to be sampled.",
+			"Ebi discover-non-stochastic trace-model",
+			"Discover a model that is a choice between all traces of the model.",
+			"Discover a model that is a choice between all traces of the model.",
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
+						"XLog",
 						"XLogPortObject",
 						"",
 						true
-					),
-					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"XLogPortObject",
-						"",
-						true
-					),
-					new EbiCommandMetadataParameter(
-						"Integer",
-						"",
-						"Number of traces to sample.",
-						false
 					)
 				)
 			),
 			new EbiCommandMetadataParameter(
-				"rootlogdiv",
-				"BufferedDataTable",
+				"PetriNet",
+				"PetriNetPortObject",
 				"",
 				true
 			)
 		);
 
-	public EbiConformanceJensenShannonSampleNodeFactory() {
-		super(COMMAND_METADATA, EbiConformanceJensenShannonSampleNodeFactory::addPorts, EbiConformanceJensenShannonSampleNodeFactory::configureModel);
+	public EbiDiscoverNonStochasticTraceModelNodeFactory() {
+		super(COMMAND_METADATA, EbiDiscoverNonStochasticTraceModelNodeFactory::addPorts, EbiDiscoverNonStochasticTraceModelNodeFactory::configureModel);
 	}
 
     private static void addPorts(final PortsAdder ports) {
@@ -85,9 +71,9 @@ public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNode
 
     private static DefaultModel configureModel(final RequireModelParameters model) {
         return model
-            .parametersClass(EbiConformanceJensenShannonSampleNodeSettings.class)
-            .configure(EbiConformanceJensenShannonSampleNodeFactory::configure)
-            .execute(EbiConformanceJensenShannonSampleNodeFactory::execute);
+            .withoutParameters()
+            .configure(EbiDiscoverNonStochasticTraceModelNodeFactory::configure)
+            .execute(EbiDiscoverNonStochasticTraceModelNodeFactory::execute);
     }
 
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
@@ -97,42 +83,30 @@ public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNode
             throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
-        }
-
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance jensen-shannon-sample", "rootlogdiv", StringCell.TYPE));
+        output.setOutSpec(0, new PetriNetPortObjectSpec());
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
         try {
-            final String[] ebiInputs = new String[3];
-            final EbiConformanceJensenShannonSampleNodeSettings settings = input.getParameters();
+            final String[] ebiInputs = new String[1];
 
             ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
-            ebiInputs[2] = String.valueOf(settings.m_input2);
 
             final String result = CallEbi.call_ebi(
-                "Ebi conformance jensen-shannon-sample",
-                ".rldiv",
+                "Ebi discover-non-stochastic trace-model",
+                ".pnml",
                 ebiInputs);
 
             if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
                 throw new IllegalStateException(result.trim());
             }
-            final DataTableSpec spec = TableUtil.createOutputSpec(
-                COMMAND_METADATA.commandName,
-                COMMAND_METADATA.output.type,
-                StringCell.TYPE);
-            final BufferedDataContainer container = input.getExecutionContext().createDataContainer(spec);
-            container.addRowToTable(new DefaultRow("Row0", new StringCell(result)));
-            container.close();
-            output.setOutData(0, container.getTable());
+            final PetriNetPortObject resultPort = new PetriNetPortObject(
+                PetriNetUtil.stringToPetriNet(result));
+            output.setOutData(0, resultPort);
         } catch (Exception ex) {
             final String detail = ex.getMessage();
             throw new RuntimeException(
-                "Ebi command failed: Ebi conformance jensen-shannon-sample"
+                "Ebi command failed: Ebi discover-non-stochastic trace-model"
                     + (detail == null || detail.isBlank() ? "" : ": " + detail),
                 ex);
         }

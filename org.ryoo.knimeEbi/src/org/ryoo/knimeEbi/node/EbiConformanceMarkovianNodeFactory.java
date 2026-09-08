@@ -17,10 +17,6 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
-import org.pm4knime.portobject.PetriNetPortObject;
-import org.pm4knime.portobject.PetriNetPortObjectSpec;
-import org.pm4knime.util.PetriNetUtil;
-
 import org.pm4knime.portobject.XLogPortObject;
 import org.pm4knime.portobject.XLogPortObjectSpec;
 import org.pm4knime.util.XLogUtil;
@@ -40,13 +36,13 @@ public class EbiConformanceMarkovianNodeFactory extends EbiDefaultNodeFactory {
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"PetriNetPortObject",
+						"XLog",
+						"XLogPortObject",
 						"",
 						true
 					),
 					new EbiCommandMetadataParameter(
-						"XLog",
+						"StochasticLabelledPetriNetSimpleWeights",
 						"XLogPortObject",
 						"",
 						true
@@ -103,8 +99,8 @@ public class EbiConformanceMarkovianNodeFactory extends EbiDefaultNodeFactory {
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof PetriNetPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
+        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
         if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
@@ -119,10 +115,7 @@ public class EbiConformanceMarkovianNodeFactory extends EbiDefaultNodeFactory {
             final String[] ebiInputs = new String[4];
             final EbiConformanceMarkovianNodeSettings settings = input.getParameters();
 
-            final PetriNetPortObject inputPort0 = input.getInPortObject(0);
-            final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
-            PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
-            ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
+            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
             ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
             ebiInputs[2] = String.valueOf(settings.m_input2);
             ebiInputs[3] = String.valueOf(settings.m_input3);

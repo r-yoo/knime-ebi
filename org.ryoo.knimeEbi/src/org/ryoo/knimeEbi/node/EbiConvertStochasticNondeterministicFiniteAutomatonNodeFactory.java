@@ -17,6 +17,10 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
+import org.pm4knime.portobject.XLogPortObject;
+import org.pm4knime.portobject.XLogPortObjectSpec;
+import org.pm4knime.util.XLogUtil;
+
 import org.pm4knime.portobject.PetriNetPortObject;
 import org.pm4knime.portobject.PetriNetPortObjectSpec;
 import org.pm4knime.util.PetriNetUtil;
@@ -30,8 +34,8 @@ public class EbiConvertStochasticNondeterministicFiniteAutomatonNodeFactory exte
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"PetriNetPortObject",
+						"XLog",
+						"XLogPortObject",
 						"",
 						true
 					)
@@ -75,8 +79,8 @@ public class EbiConvertStochasticNondeterministicFiniteAutomatonNodeFactory exte
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof PetriNetPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid PetriNetPortObject!");
+        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
         }
 
         output.setOutSpec(0, new PetriNetPortObjectSpec());
@@ -86,10 +90,7 @@ public class EbiConvertStochasticNondeterministicFiniteAutomatonNodeFactory exte
         try {
             final String[] ebiInputs = new String[1];
 
-            final PetriNetPortObject inputPort0 = input.getInPortObject(0);
-            final ByteArrayOutputStream inputBuffer0 = new ByteArrayOutputStream();
-            PetriNetUtil.exportToStream(inputPort0.getANet(), inputBuffer0);
-            ebiInputs[0] = inputBuffer0.toString(StandardCharsets.UTF_8);
+            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
 
             final String result = CallEbi.call_ebi(
                 "Ebi convert stochastic-nondeterministic-finite-automaton",

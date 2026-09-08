@@ -154,6 +154,30 @@
       <node
             category-path="/"
             factory-class="org.ryoo.knimeEbi.node.EbiVisualiseTextNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiAnalyseNonStochasticEmptyTracesNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiAnalyseNonStochasticTimestampsOrderedNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiDiscoverNonStochasticInductiveMinerNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiDiscoverNonStochasticInductiveMinerInfrequentNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiDiscoverNonStochasticTraceModelNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiReduceLabelledPetriNetNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiReduceProcessTreeNodeFactory"/>
+      <node
+            category-path="/"
+            factory-class="org.ryoo.knimeEbi.node.EbiTestPermutationTestLogModelNodeFactory"/>
 </extension>
    
 </plugin>

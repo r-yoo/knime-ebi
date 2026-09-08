@@ -17,9 +17,8 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
-import org.pm4knime.portobject.XLogPortObject;
-import org.pm4knime.portobject.XLogPortObjectSpec;
-import org.pm4knime.util.XLogUtil;
+import org.pm4knime.portobject.ProcessTreePortObject;
+import org.pm4knime.portobject.ProcessTreePortObjectSpec;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
@@ -27,44 +26,32 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 
-public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNodeFactory {
+public class EbiAnalyseNonStochasticEmptyTracesNodeFactory extends EbiDefaultNodeFactory {
 	private static final EbiCommandMetadata COMMAND_METADATA =
 		new EbiCommandMetadata(
-			"Ebi conformance jensen-shannon-sample",
-			"Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance, if both inputs need to be sampled.",
-			"Compute Jensen-Shannon stochastic conformance, which is 1 - the Jensen-Shannon distance, if both inputs need to be sampled.",
+			"Ebi analyse-non-stochastic empty-traces",
+			"Returns wheter the log or model contains empty traces.",
+			"Returns wheter the log or model contains empty traces.",
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"XLogPortObject",
+						"EfficientTree",
+						"ProcessTreePortObject",
 						"",
 						true
-					),
-					new EbiCommandMetadataParameter(
-						"StochasticLabelledPetriNetSimpleWeights",
-						"XLogPortObject",
-						"",
-						true
-					),
-					new EbiCommandMetadataParameter(
-						"Integer",
-						"",
-						"Number of traces to sample.",
-						false
 					)
 				)
 			),
 			new EbiCommandMetadataParameter(
-				"rootlogdiv",
+				"boolean",
 				"BufferedDataTable",
 				"",
 				true
 			)
 		);
 
-	public EbiConformanceJensenShannonSampleNodeFactory() {
-		super(COMMAND_METADATA, EbiConformanceJensenShannonSampleNodeFactory::addPorts, EbiConformanceJensenShannonSampleNodeFactory::configureModel);
+	public EbiAnalyseNonStochasticEmptyTracesNodeFactory() {
+		super(COMMAND_METADATA, EbiAnalyseNonStochasticEmptyTracesNodeFactory::addPorts, EbiAnalyseNonStochasticEmptyTracesNodeFactory::configureModel);
 	}
 
     private static void addPorts(final PortsAdder ports) {
@@ -85,37 +72,31 @@ public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNode
 
     private static DefaultModel configureModel(final RequireModelParameters model) {
         return model
-            .parametersClass(EbiConformanceJensenShannonSampleNodeSettings.class)
-            .configure(EbiConformanceJensenShannonSampleNodeFactory::configure)
-            .execute(EbiConformanceJensenShannonSampleNodeFactory::execute);
+            .withoutParameters()
+            .configure(EbiAnalyseNonStochasticEmptyTracesNodeFactory::configure)
+            .execute(EbiAnalyseNonStochasticEmptyTracesNodeFactory::execute);
     }
 
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
+        if (!(input.getInPortSpec(0) instanceof ProcessTreePortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid ProcessTreePortObject!");
         }
 
-        if (!(input.getInPortSpec(1) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
-        }
-
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi conformance jensen-shannon-sample", "rootlogdiv", StringCell.TYPE));
+        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi analyse-non-stochastic empty-traces", "boolean", StringCell.TYPE));
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
         try {
-            final String[] ebiInputs = new String[3];
-            final EbiConformanceJensenShannonSampleNodeSettings settings = input.getParameters();
+            final String[] ebiInputs = new String[1];
 
-            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
-            ebiInputs[1] = XESUtil.writeLogToXesString(input.getInPortObject(1));
-            ebiInputs[2] = String.valueOf(settings.m_input2);
+            final ProcessTreePortObject inputPort0 = input.getInPortObject(0);
+            ebiInputs[0] = inputPort0.toText();
 
             final String result = CallEbi.call_ebi(
-                "Ebi conformance jensen-shannon-sample",
-                ".rldiv",
+                "Ebi analyse-non-stochastic empty-traces",
+                ".bool",
                 ebiInputs);
 
             if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
@@ -132,7 +113,7 @@ public class EbiConformanceJensenShannonSampleNodeFactory extends EbiDefaultNode
         } catch (Exception ex) {
             final String detail = ex.getMessage();
             throw new RuntimeException(
-                "Ebi command failed: Ebi conformance jensen-shannon-sample"
+                "Ebi command failed: Ebi analyse-non-stochastic empty-traces"
                     + (detail == null || detail.isBlank() ? "" : ": " + detail),
                 ex);
         }

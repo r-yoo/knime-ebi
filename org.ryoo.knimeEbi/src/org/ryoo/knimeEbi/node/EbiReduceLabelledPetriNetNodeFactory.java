@@ -17,42 +17,39 @@ import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadata;
 import org.ryoo.knimeEbi.scaffolder.EbiCommandMetadataParameter;
 import org.ryoo.knimeEbi.util.*;
 
-import org.pm4knime.portobject.XLogPortObject;
-import org.pm4knime.portobject.XLogPortObjectSpec;
-import org.pm4knime.util.XLogUtil;
+import org.pm4knime.portobject.ProcessTreePortObject;
+import org.pm4knime.portobject.ProcessTreePortObjectSpec;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
+import org.pm4knime.portobject.PetriNetPortObject;
+import org.pm4knime.portobject.PetriNetPortObjectSpec;
+import org.pm4knime.util.PetriNetUtil;
 
-public class EbiAnalyseNonStochasticBoundedNodeFactory extends EbiDefaultNodeFactory {
+public class EbiReduceLabelledPetriNetNodeFactory extends EbiDefaultNodeFactory {
 	private static final EbiCommandMetadata COMMAND_METADATA =
 		new EbiCommandMetadata(
-			"Ebi analyse-non-stochastic bounded",
-			"Compute whether the model has a bounded state space.",
-			"Compute whether the model has a bounded state space.",
+			"Ebi reduce labelled-petri-net",
+			"Reduce a labelled Petri net language-equivalently.",
+			"Reduce a labelled Petri net language-equivalently, using adapted Murata rules, which remove certain places and silent transitions.",
 			new ArrayList<>(
 				List.of(
 					new EbiCommandMetadataParameter(
-						"XLog",
-						"XLogPortObject",
+						"EfficientTree",
+						"ProcessTreePortObject",
 						"",
 						true
 					)
 				)
 			),
 			new EbiCommandMetadataParameter(
-				"boolean",
-				"BufferedDataTable",
+				"PetriNet",
+				"PetriNetPortObject",
 				"",
 				true
 			)
 		);
 
-	public EbiAnalyseNonStochasticBoundedNodeFactory() {
-		super(COMMAND_METADATA, EbiAnalyseNonStochasticBoundedNodeFactory::addPorts, EbiAnalyseNonStochasticBoundedNodeFactory::configureModel);
+	public EbiReduceLabelledPetriNetNodeFactory() {
+		super(COMMAND_METADATA, EbiReduceLabelledPetriNetNodeFactory::addPorts, EbiReduceLabelledPetriNetNodeFactory::configureModel);
 	}
 
     private static void addPorts(final PortsAdder ports) {
@@ -74,46 +71,42 @@ public class EbiAnalyseNonStochasticBoundedNodeFactory extends EbiDefaultNodeFac
     private static DefaultModel configureModel(final RequireModelParameters model) {
         return model
             .withoutParameters()
-            .configure(EbiAnalyseNonStochasticBoundedNodeFactory::configure)
-            .execute(EbiAnalyseNonStochasticBoundedNodeFactory::execute);
+            .configure(EbiReduceLabelledPetriNetNodeFactory::configure)
+            .execute(EbiReduceLabelledPetriNetNodeFactory::execute);
     }
 
     public static void configure(final DefaultModel.ConfigureInput input, final DefaultModel.ConfigureOutput output) 
     	throws InvalidSettingsException {
      
-        if (!(input.getInPortSpec(0) instanceof XLogPortObjectSpec)) {
-            throw new InvalidSettingsException("Input is not a valid XLogPortObject!");
+        if (!(input.getInPortSpec(0) instanceof ProcessTreePortObjectSpec)) {
+            throw new InvalidSettingsException("Input is not a valid ProcessTreePortObject!");
         }
 
-        output.setOutSpec(0, TableUtil.createOutputSpec("Ebi analyse-non-stochastic bounded", "boolean", StringCell.TYPE));
+        output.setOutSpec(0, new PetriNetPortObjectSpec());
     }
 
     public static void execute(final DefaultModel.ExecuteInput input, final DefaultModel.ExecuteOutput output) {
         try {
             final String[] ebiInputs = new String[1];
 
-            ebiInputs[0] = XESUtil.writeLogToXesString(input.getInPortObject(0));
+            final ProcessTreePortObject inputPort0 = input.getInPortObject(0);
+            ebiInputs[0] = inputPort0.toText();
 
             final String result = CallEbi.call_ebi(
-                "Ebi analyse-non-stochastic bounded",
-                ".bool",
+                "Ebi reduce labelled-petri-net",
+                ".pnml",
                 ebiInputs);
 
             if (result != null && result.stripLeading().startsWith("Ebi: error:")) {
                 throw new IllegalStateException(result.trim());
             }
-            final DataTableSpec spec = TableUtil.createOutputSpec(
-                COMMAND_METADATA.commandName,
-                COMMAND_METADATA.output.type,
-                StringCell.TYPE);
-            final BufferedDataContainer container = input.getExecutionContext().createDataContainer(spec);
-            container.addRowToTable(new DefaultRow("Row0", new StringCell(result)));
-            container.close();
-            output.setOutData(0, container.getTable());
+            final PetriNetPortObject resultPort = new PetriNetPortObject(
+                PetriNetUtil.stringToPetriNet(result));
+            output.setOutData(0, resultPort);
         } catch (Exception ex) {
             final String detail = ex.getMessage();
             throw new RuntimeException(
-                "Ebi command failed: Ebi analyse-non-stochastic bounded"
+                "Ebi command failed: Ebi reduce labelled-petri-net"
                     + (detail == null || detail.isBlank() ? "" : ": " + detail),
                 ex);
         }
