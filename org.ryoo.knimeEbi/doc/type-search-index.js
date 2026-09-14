@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"org.ryoo.knimeEbi.entryPoint","l":"Main"}];updateSearchResults();
